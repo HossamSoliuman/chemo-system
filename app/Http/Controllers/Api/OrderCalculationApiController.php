@@ -29,8 +29,8 @@ class OrderCalculationApiController extends Controller
         $modPct = (float) ($request->dose_modification_percent ?? 100);
         $cycleInfo = $this->calc->determineCycleNumber($patient, $protocol);
 
-        $drugs = $protocol->protocolDrugs->map(function ($pd) use ($bsa, $crcl, $modPct) {
-            $result = $this->calc->calculateDrugDose($pd, $bsa, $crcl, $modPct);
+        $drugs = $protocol->protocolDrugs->map(function ($pd) use ($bsa, $crcl) {
+            $result = $this->calc->calculateDrugDose($pd, $bsa, $crcl, 100);
             return [
                 'protocol_drug_id' => $pd->id,
                 'drug_id' => $pd->drug_id,

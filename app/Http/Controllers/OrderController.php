@@ -53,7 +53,6 @@ class OrderController extends Controller
         $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'protocol_id' => 'required|exists:protocols,id',
-            'dose_modification_percent' => 'required|numeric|min:1|max:200',
             'consultant_name' => 'nullable|string|max:255',
             'pharmacist_name' => 'nullable|string|max:255',
             'nurse_name' => 'nullable|string|max:255',
@@ -68,29 +67,44 @@ class OrderController extends Controller
         $bsa = $this->calc->calculateBSA($patient->height_cm, $patient->weight_kg);
         $crcl = $this->calc->calculateCrCl($age, $patient->weight_kg, $patient->serum_creatinine, $patient->gender);
         $cycleInfo = $this->calc->determineCycleNumber($patient, $protocol);
-        $modPct = (float) $request->dose_modification_percent;
 
         $orderDrugsData = [];
+        $anyModified = false;
+
         foreach ($protocol->protocolDrugs as $pd) {
-            $doseResult = $this->calc->calculateDrugDose($pd, $bsa, $crcl, $modPct);
             $submittedDrug = collect($request->drugs)->firstWhere('protocol_drug_id', $pd->id);
+
+            $perDrugModPct = isset($submittedDrug['modification_pct']) && $submittedDrug['modification_pct'] !== ''
+                ? (float) $submittedDrug['modification_pct']
+                : 100;
+
+            $doseResult = $this->calc->calculateDrugDose($pd, $bsa, $crcl, $perDrugModPct);
 
             $finalDose = $doseResult['final'];
             $isOverridden = false;
             $overrideReason = null;
 
-            if ($submittedDrug && isset($submittedDrug['final_dose']) && (float)$submittedDrug['final_dose'] != $doseResult['final']) {
+            if (
+                $submittedDrug && isset($submittedDrug['final_dose'])
+                && (float) $submittedDrug['final_dose'] != $doseResult['final']
+                && (float) $submittedDrug['final_dose'] > 0
+            ) {
                 $finalDose = (float) $submittedDrug['final_dose'];
                 $isOverridden = true;
                 $overrideReason = $submittedDrug['override_reason'] ?? null;
+            }
+
+            if ($perDrugModPct != 100) {
+                $anyModified = true;
             }
 
             $orderDrugsData[] = [
                 'protocol_drug' => $pd,
                 'calculated' => $doseResult['calculated'],
                 'final' => $finalDose,
+                'modification_pct' => $perDrugModPct,
                 'cap_applied' => $doseResult['cap_applied'],
-                'is_included' => isset($submittedDrug['is_included']) ? (bool)$submittedDrug['is_included'] : true,
+                'is_included' => isset($submittedDrug['is_included']) ? (bool) $submittedDrug['is_included'] : true,
                 'is_manually_overridden' => $isOverridden,
                 'override_reason' => $overrideReason,
             ];
@@ -105,9 +119,16 @@ class OrderController extends Controller
             ]);
         }
 
-        $isModified = $modPct != 100 || collect($orderDrugsData)->contains('is_manually_overridden', true);
+        $isModified = $anyModified || collect($orderDrugsData)->contains('is_manually_overridden', true);
 
-        $order = DB::transaction(function () use ($request, $patient, $protocol, $bsa, $crcl, $cycleInfo, $modPct, $isModified, $orderDrugsData) {
+        $effectiveModPct = collect($orderDrugsData)
+            ->pluck('modification_pct')
+            ->unique()
+            ->count() === 1
+            ? collect($orderDrugsData)->first()['modification_pct']
+            : 100;
+
+        $order = DB::transaction(function () use ($request, $patient, $protocol, $bsa, $crcl, $cycleInfo, $effectiveModPct, $isModified, $orderDrugsData) {
             $order = Order::create([
                 'patient_id' => $patient->id,
                 'protocol_id' => $protocol->id,
@@ -116,7 +137,7 @@ class OrderController extends Controller
                 'parent_order_id' => $cycleInfo['parent_order_id'],
                 'bsa' => $bsa,
                 'crcl' => $crcl,
-                'dose_modification_percent' => $modPct,
+                'dose_modification_percent' => $effectiveModPct,
                 'dose_modification_reason' => $request->dose_modification_reason,
                 'is_modified_protocol' => $isModified,
                 'consultant_name' => $request->consultant_name,

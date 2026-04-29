@@ -16,7 +16,7 @@ class PatientController extends Controller
             $q = $request->q;
             $query->where(function ($sq) use ($q) {
                 $sq->where('mrn', 'like', "%$q%")
-                   ->orWhere('name', 'like', "%$q%");
+                    ->orWhere('name', 'like', "%$q%");
             });
         }
 
@@ -100,7 +100,7 @@ class PatientController extends Controller
             'date_of_birth' => 'required|date|before:today',
             'height_cm' => 'required|numeric|min:50|max:250',
             'weight_kg' => 'required|numeric|min:1|max:500',
-            'serum_creatinine' => 'required|numeric|min:0.1|max:30',
+            'serum_creatinine' => 'required|numeric|min:10|max:2000',
         ];
     }
 }

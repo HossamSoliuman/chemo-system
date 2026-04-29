@@ -16,9 +16,11 @@ class ClinicalCalculationService
         return round(sqrt(($height_cm * $weight_kg) / 3600), 4);
     }
 
-    public function calculateCrCl(int $age, float $weight_kg, float $creatinine, string $gender): float
+    public function calculateCrCl(int $age, float $weight_kg, float $creatinine_umol, string $gender): float
     {
-        $crcl = ((140 - $age) * $weight_kg) / (72 * $creatinine);
+        $creatinine_mgdl = $creatinine_umol / 88.42;
+
+        $crcl = ((140 - $age) * $weight_kg) / (72 * $creatinine_mgdl);
         if ($gender === 'female') {
             $crcl *= 0.85;
         }
@@ -35,7 +37,7 @@ class ClinicalCalculationService
         return $dob->diff(new \DateTime())->y;
     }
 
-    public function calculateDrugDose(ProtocolDrug $pd, float $bsa, float $crcl, float $modification_pct): array
+    public function calculateDrugDose(ProtocolDrug $pd, float $bsa, float $crcl, float $modification_pct = 100): array
     {
         $calculated = 0;
 

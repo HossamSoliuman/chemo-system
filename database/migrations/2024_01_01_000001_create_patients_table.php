@@ -16,7 +16,7 @@ return new class extends Migration
             $table->date('date_of_birth');
             $table->decimal('height_cm', 5, 1);
             $table->decimal('weight_kg', 5, 2);
-            $table->decimal('serum_creatinine', 5, 3);
+            $table->decimal('serum_creatinine', 7, 2);
             $table->timestamps();
         });
     }

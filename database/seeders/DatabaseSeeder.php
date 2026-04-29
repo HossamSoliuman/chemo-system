@@ -10,12 +10,13 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    
     public function run(): void
     {
         $drugs = $this->seedDrugs();
         $diagnoses = $this->seedDiagnoses();
-        $this->seedProtocols($diagnoses, $drugs);
+        $protocols = $this->seedProtocols($diagnoses, $drugs);
+        $patients = $this->seedPatients();
+        $this->seedOrders($patients, $protocols, $drugs);
     }
 
     private function seedDrugs(): array
@@ -72,7 +73,7 @@ class DatabaseSeeder extends Seeder
         return $result;
     }
 
-    private function seedProtocols(array $diagnoses, array $drugs): void
+    private function seedProtocols(array $diagnoses, array $drugs): array
     {
         $protocols = [
             [
@@ -179,6 +180,7 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
+        $result = [];
         foreach ($protocols as $pData) {
             $diagnosis = $diagnoses[$pData['diagnosis']];
             $protocol = Protocol::create([
@@ -207,6 +209,125 @@ class DatabaseSeeder extends Seeder
                     'notes' => $drugData['notes'] ?? null,
                     'sort_order' => $index,
                 ]);
+            }
+            $result[$pData['name']] = $protocol;
+        }
+        return $result;
+    }
+
+    private function seedPatients(): array
+    {
+        $data = [
+            ['mrn' => 'MRN-001', 'name' => 'Fatima Al-Rashidi',  'gender' => 'female', 'date_of_birth' => '1972-03-15', 'height_cm' => 162.0, 'weight_kg' => 68.50, 'serum_creatinine' => 72.00],
+            ['mrn' => 'MRN-002', 'name' => 'Ahmed Hassan',       'gender' => 'male',   'date_of_birth' => '1958-07-22', 'height_cm' => 175.0, 'weight_kg' => 82.00, 'serum_creatinine' => 95.00],
+            ['mrn' => 'MRN-003', 'name' => 'Mona Youssef',       'gender' => 'female', 'date_of_birth' => '1980-11-08', 'height_cm' => 158.0, 'weight_kg' => 60.00, 'serum_creatinine' => 65.00],
+            ['mrn' => 'MRN-004', 'name' => 'Karim Nabil',        'gender' => 'male',   'date_of_birth' => '1965-05-30', 'height_cm' => 178.0, 'weight_kg' => 90.00, 'serum_creatinine' => 110.00],
+            ['mrn' => 'MRN-005', 'name' => 'Layla Ibrahim',      'gender' => 'female', 'date_of_birth' => '1975-09-14', 'height_cm' => 165.0, 'weight_kg' => 72.00, 'serum_creatinine' => 80.00],
+            ['mrn' => 'MRN-006', 'name' => 'Omar Sharaf',        'gender' => 'male',   'date_of_birth' => '1952-01-20', 'height_cm' => 172.0, 'weight_kg' => 75.00, 'serum_creatinine' => 135.00],
+            ['mrn' => 'MRN-007', 'name' => 'Sara Mahmoud',       'gender' => 'female', 'date_of_birth' => '1988-06-03', 'height_cm' => 160.0, 'weight_kg' => 55.00, 'serum_creatinine' => 58.00],
+            ['mrn' => 'MRN-008', 'name' => 'Tarek Farouk',       'gender' => 'male',   'date_of_birth' => '1970-12-11', 'height_cm' => 180.0, 'weight_kg' => 95.00, 'serum_creatinine' => 88.00],
+            ['mrn' => 'MRN-009', 'name' => 'Hana Gamal',         'gender' => 'female', 'date_of_birth' => '1963-04-25', 'height_cm' => 155.0, 'weight_kg' => 64.00, 'serum_creatinine' => 92.00],
+            ['mrn' => 'MRN-010', 'name' => 'Youssef Badawi',     'gender' => 'male',   'date_of_birth' => '1978-08-17', 'height_cm' => 170.0, 'weight_kg' => 78.00, 'serum_creatinine' => 76.00],
+            ['mrn' => 'MRN-011', 'name' => 'Nadia Fouad',        'gender' => 'female', 'date_of_birth' => '1969-02-28', 'height_cm' => 163.0, 'weight_kg' => 70.00, 'serum_creatinine' => 85.00],
+            ['mrn' => 'MRN-012', 'name' => 'Bassem Khalil',      'gender' => 'male',   'date_of_birth' => '1974-10-05', 'height_cm' => 176.0, 'weight_kg' => 85.00, 'serum_creatinine' => 78.00],
+        ];
+
+        $result = [];
+        foreach ($data as $row) {
+            $result[$row['mrn']] = \App\Models\Patient::create($row);
+        }
+        return $result;
+    }
+
+    private function seedOrders(array $patients, array $protocols, array $drugs): void
+    {
+        $calc = new \App\Services\ClinicalCalculationService();
+        $counter = 1;
+
+        $scenarios = [
+            ['patient' => 'MRN-001', 'protocol' => 'AC (Doxorubicin + Cyclophosphamide)',  'cycles' => 4, 'days_ago' => 90,  'interval' => 21, 'status' => 'printed',    'consultant' => 'Dr. Samira Osman',   'pharmacist' => 'Pharm. Laila Saleh'],
+            ['patient' => 'MRN-001', 'protocol' => 'Docetaxel (single agent)',              'cycles' => 1, 'days_ago' => 3,   'interval' => 21, 'status' => 'draft',      'consultant' => 'Dr. Samira Osman',   'pharmacist' => 'Pharm. Laila Saleh',  'notes' => 'Sequential therapy post-AC.'],
+            ['patient' => 'MRN-002', 'protocol' => 'FOLFOX',                                'cycles' => 6, 'days_ago' => 85,  'interval' => 14, 'status' => 'confirmed',  'consultant' => 'Dr. Hassan Mostafa', 'pharmacist' => 'Pharm. Ahmed Rady'],
+            ['patient' => 'MRN-003', 'protocol' => 'Carboplatin + Paclitaxel (TC)',         'cycles' => 3, 'days_ago' => 65,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Maha Samy',      'pharmacist' => 'Pharm. Laila Saleh'],
+            ['patient' => 'MRN-004', 'protocol' => 'R-CHOP',                                'cycles' => 4, 'days_ago' => 85,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Hassan Mostafa', 'pharmacist' => 'Pharm. Omar Gamal'],
+            ['patient' => 'MRN-005', 'protocol' => 'EC (Epirubicin + Cyclophosphamide)',    'cycles' => 3, 'days_ago' => 45,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Samira Osman',   'pharmacist' => 'Pharm. Laila Saleh'],
+            ['patient' => 'MRN-006', 'protocol' => 'Gemcitabine + Carboplatin',             'cycles' => 2, 'days_ago' => 25,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Khalid Amer',    'pharmacist' => 'Pharm. Ahmed Rady',   'mod_reason' => 'Elevated creatinine — CrCl adjusted'],
+            ['patient' => 'MRN-007', 'protocol' => 'Docetaxel (single agent)',              'cycles' => 2, 'days_ago' => 45,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Maha Samy',      'pharmacist' => 'Pharm. Laila Saleh'],
+            ['patient' => 'MRN-008', 'protocol' => 'FOLFIRI',                               'cycles' => 3, 'days_ago' => 42,  'interval' => 14, 'status' => 'confirmed',  'consultant' => 'Dr. Hassan Mostafa', 'pharmacist' => 'Pharm. Omar Gamal'],
+            ['patient' => 'MRN-009', 'protocol' => 'AC (Doxorubicin + Cyclophosphamide)',  'cycles' => 2, 'days_ago' => 30,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Samira Osman',   'pharmacist' => 'Pharm. Ahmed Rady'],
+            ['patient' => 'MRN-010', 'protocol' => 'FOLFOX',                                'cycles' => 2, 'days_ago' => 28,  'interval' => 14, 'status' => 'confirmed',  'consultant' => 'Dr. Hassan Mostafa', 'pharmacist' => 'Pharm. Ahmed Rady'],
+            ['patient' => 'MRN-011', 'protocol' => 'Carboplatin + Paclitaxel (TC)',         'cycles' => 4, 'days_ago' => 88,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Maha Samy',      'pharmacist' => 'Pharm. Laila Saleh'],
+            ['patient' => 'MRN-012', 'protocol' => 'R-CHOP',                                'cycles' => 2, 'days_ago' => 22,  'interval' => 21, 'status' => 'confirmed',  'consultant' => 'Dr. Hassan Mostafa', 'pharmacist' => 'Pharm. Omar Gamal'],
+            ['patient' => 'MRN-003', 'protocol' => 'Docetaxel (single agent)',              'cycles' => 1, 'days_ago' => 2,   'interval' => 21, 'status' => 'draft',      'consultant' => 'Dr. Maha Samy',      'pharmacist' => 'Pharm. Laila Saleh',  'notes' => 'Continuation — cycle 4 planned.'],
+        ];
+
+        foreach ($scenarios as $scenario) {
+            $patient = $patients[$scenario['patient']];
+            $protocol = $protocols[$scenario['protocol']];
+            $protocol->load('protocolDrugs.drug');
+
+            $age  = $calc->calculateAge($patient->date_of_birth->toDateTime());
+            $bsa  = $calc->calculateBSA($patient->height_cm, $patient->weight_kg);
+            $crcl = $calc->calculateCrCl($age, $patient->weight_kg, $patient->serum_creatinine, $patient->gender);
+
+            for ($cycle = 1; $cycle <= $scenario['cycles']; $cycle++) {
+                $daysAgo   = $scenario['days_ago'] - (($cycle - 1) * $scenario['interval']);
+                $orderedAt = now()->subDays($daysAgo);
+                $year      = $orderedAt->year;
+                $orderNum  = 'ORD-' . $year . '-' . str_pad($counter++, 4, '0', STR_PAD_LEFT);
+
+                $isLast = $cycle === $scenario['cycles'];
+                if ($scenario['status'] === 'draft') {
+                    $status = $isLast ? 'draft' : 'printed';
+                } else {
+                    $status = $isLast ? $scenario['status'] : 'printed';
+                }
+
+                $order = \App\Models\Order::create([
+                    'patient_id'               => $patient->id,
+                    'protocol_id'              => $protocol->id,
+                    'order_number'             => $orderNum,
+                    'cycle_number'             => $cycle,
+                    'is_same_cycle'            => false,
+                    'parent_order_id'          => null,
+                    'bsa'                      => $bsa,
+                    'crcl'                     => $crcl,
+                    'dose_modification_percent' => 100,
+                    'dose_modification_reason' => $scenario['mod_reason'] ?? null,
+                    'is_modified_protocol'     => false,
+                    'consultant_name'          => $scenario['consultant'],
+                    'pharmacist_name'          => $scenario['pharmacist'],
+                    'nurse_name'               => null,
+                    'ordered_at'               => $orderedAt,
+                    'notes'                    => $scenario['notes'] ?? null,
+                    'status'                   => $status,
+                ]);
+
+                foreach ($protocol->protocolDrugs as $pd) {
+                    $dose = $calc->calculateDrugDose($pd, $bsa, $crcl, 100);
+                    \App\Models\OrderDrug::create([
+                        'order_id'             => $order->id,
+                        'protocol_drug_id'     => $pd->id,
+                        'drug_id'              => $pd->drug_id,
+                        'category'             => $pd->category,
+                        'calculated_dose'      => $dose['calculated'],
+                        'final_dose'           => $dose['final'],
+                        'is_included'          => true,
+                        'is_manually_overridden' => false,
+                        'override_reason'      => null,
+                        'cap_applied'          => $dose['cap_applied'],
+                    ]);
+
+                    if ($status !== 'draft') {
+                        \App\Models\PatientCumulativeDose::updateOrCreate(
+                            ['patient_id' => $patient->id, 'drug_id' => $pd->drug_id],
+                            [
+                                'total_dose' => \Illuminate\Support\Facades\DB::raw('COALESCE(total_dose, 0) + ' . $dose['final']),
+                                'updated_at' => $orderedAt,
+                            ]
+                        );
+                    }
+                }
             }
         }
     }
