@@ -1,66 +1,151 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# OncoChemo — Chemotherapy Protocol Ordering System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A complete offline-capable Laravel 11 web application for oncology departments to manage chemotherapy protocols, patient records, and drug orders with automatic clinical calculations.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requirements
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP >= 8.2
+- Composer
+- SQLite (default, zero config) **or** MySQL 8+
+- Node is NOT required (Tailwind CSS loaded via CDN, Alpine.js via CDN)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 1. Extract the project
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+unzip oncochemo.zip -d oncochemo
+cd oncochemo
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. Install PHP dependencies
 
-## Laravel Sponsors
+```bash
+composer install --no-dev --optimize-autoloader
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 3. Environment setup
 
-### Premium Partners
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Edit `.env` and set:
 
-## Contributing
+```
+HOSPITAL_NAME="Your Hospital Name"
+APP_URL=http://localhost:8000
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**For SQLite (default — no database server needed):**
+```
+DB_CONNECTION=sqlite
+```
+Then create the database file:
+```bash
+touch database/database.sqlite
+```
 
-## Code of Conduct
+**For MySQL:**
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=oncochemo
+DB_USERNAME=root
+DB_PASSWORD=yourpassword
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Run migrations and seed demo data
 
-## Security Vulnerabilities
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+This will create all tables and load:
+- 25 common chemotherapy drugs
+- 6 oncology diagnoses
+- 8 ready-to-use protocols (AC, EC, R-CHOP, FOLFOX, FOLFIRI, Carboplatin+Paclitaxel, Gemcitabine+Carboplatin, Docetaxel)
+
+### 5. Start the application
+
+```bash
+php artisan serve
+```
+
+Open: **http://localhost:8000**
+
+---
+
+## Offline Usage (No Internet Required)
+
+The application is **fully offline after setup**. However, Tailwind CSS, Alpine.js, and Font Awesome are loaded from CDNs by default.
+
+To make it **completely offline**, download these files and update `layouts/app.blade.php`:
+
+| Library | URL | Save as |
+|---------|-----|---------|
+| Tailwind CSS CDN | https://cdn.tailwindcss.com | `public/tailwind.js` |
+| Alpine.js | https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js | `public/alpine.min.js` |
+| Font Awesome CSS | https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css | `public/fa/all.min.css` |
+| Font Awesome Webfonts | (download the webfonts folder from Font Awesome) | `public/fa/webfonts/` |
+
+Then update `resources/views/layouts/app.blade.php`, replacing the CDN links with:
+```html
+<script src="/tailwind.js"></script>
+<script defer src="/alpine.min.js"></script>
+<link rel="stylesheet" href="/fa/all.min.css">
+```
+
+Run for print view too in `resources/views/orders/print.blade.php`.
+
+---
+
+## Features
+
+- **Patient Management** — MRN-based registration with anthropometric data
+- **Diagnosis & Protocol Administration** — Full CRUD with drug builder UI
+- **Clinical Calculations** — Auto BSA (Mosteller), CrCl (Cockcroft-Gault), Carboplatin (Calvert)
+- **Order Creation** — Step-by-step ordering with real-time dose calculation
+- **Dose Modifications** — Global % modification with per-drug manual override
+- **Safety Checks** — Per-cycle caps, lifetime dose caps with modal acknowledgment
+- **Cycle Tracking** — Auto cycle numbering, same-cycle detection (within 6 days)
+- **Print Form** — Complete printable chemotherapy order with signature blocks
+- **Order History** — Filterable by MRN, protocol, date, status
+- **Cumulative Dose Tracking** — Per-patient lifetime dose tracker with visual bar
+
+---
+
+## Project Structure
+
+```
+app/
+  Http/Controllers/
+    Admin/          — DiagnosisController, ProtocolController, DrugController
+    Api/            — PatientApiController, ProtocolApiController, OrderCalculationApiController
+    DashboardController, PatientController, OrderController
+  Models/           — Patient, Diagnosis, Protocol, ProtocolDrug, Drug, Order, OrderDrug, PatientCumulativeDose
+  Services/         — ClinicalCalculationService (BSA, CrCl, Carboplatin, caps)
+database/
+  migrations/       — 8 migration files
+  seeders/          — DatabaseSeeder with 8 real protocols
+resources/views/
+  layouts/app.blade.php
+  dashboard.blade.php
+  admin/diagnoses/, admin/protocols/, admin/drugs/
+  patients/
+  orders/           — index, create, show, print
+  partials/alerts.blade.php
+routes/web.php
+```
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+For internal hospital use only. Not for redistribution.
