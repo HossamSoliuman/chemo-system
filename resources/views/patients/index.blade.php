@@ -36,7 +36,7 @@
                     <td class="px-4 py-3 flex items-center gap-3">
                         <a href="{{ route('patients.show', $patient) }}" class="text-blue-600 hover:text-blue-800"><i class="fa-solid fa-eye"></i></a>
                         <a href="{{ route('patients.edit', $patient) }}" class="text-gray-500 hover:text-gray-700"><i class="fa-solid fa-pen-to-square"></i></a>
-                        <a href="{{ route('orders.create') }}?patient_id={{ $patient->id }}" class="text-green-600 hover:text-green-800" title="New Order"><i class="fa-solid fa-file-medical"></i></a>
+                        <a href="{{ route('orders.create') }}?mrn={{ $patient->mrn }}" class="text-green-600 hover:text-green-800" title="New Order"><i class="fa-solid fa-file-medical"></i></a>
                     </td>
                 </tr>
                 @empty

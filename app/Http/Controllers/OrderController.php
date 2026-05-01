@@ -84,9 +84,11 @@ class OrderController extends Controller
             $isOverridden = false;
             $overrideReason = null;
 
-            if ($submittedDrug && isset($submittedDrug['final_dose'])
+            if (
+                $submittedDrug && isset($submittedDrug['final_dose'])
                 && (float) $submittedDrug['final_dose'] != $doseResult['final']
-                && (float) $submittedDrug['final_dose'] > 0) {
+                && (float) $submittedDrug['final_dose'] > 0
+            ) {
                 $finalDose = (float) $submittedDrug['final_dose'];
                 $isOverridden = true;
                 $overrideReason = $submittedDrug['override_reason'] ?? null;
