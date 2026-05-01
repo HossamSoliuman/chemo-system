@@ -13,7 +13,7 @@ class ProtocolDrug extends Model
         'dose_per_unit', 'fixed_dose', 'target_auc',
         'per_cycle_cap', 'per_cycle_cap_unit',
         'lifetime_cap', 'lifetime_cap_unit',
-        'route', 'frequency', 'notes', 'sort_order',
+        'route', 'frequency', 'notes', 'sort_order', 'duration_days',
     ];
 
     protected $casts = [

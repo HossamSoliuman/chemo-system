@@ -51,7 +51,15 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Description</label>
-                            <textarea name="description" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('description', $protocol->description) }}</textarea>
+                            <textarea name="description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('description', $protocol->description) }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">
+                                <i class="fa-solid fa-flask-vial mr-1 text-amber-500"></i>
+                                Required Tests / Investigations
+                                <span class="ml-1 text-gray-400 font-normal">(internal — not printed)</span>
+                            </label>
+                            <textarea name="tests_reminder" rows="2" placeholder="e.g. CBC & diff, platelets, creatinine & LFT before each cycle." class="w-full border border-amber-200 bg-amber-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">{{ old('tests_reminder', $protocol->tests_reminder) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -121,7 +129,22 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
                                     <div>
                                         <label class="block text-gray-500 mb-1">Route</label>
                                         <select x-model="drug.route" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                            <option value="IV">IV</option><option value="PO">PO</option><option value="SC">SC</option><option value="IM">IM</option>
+                                            <option value="">Select route</option>
+                                            <option value="Oral">Oral</option>
+                                            <option value="Sublingual">Sublingual</option>
+                                            <option value="Continuous IV infusion">Continuous IV infusion</option>
+                                            <option value="IV bolus">Intravenous bolus</option>
+                                            <option value="IV push">Intravenous push</option>
+                                            <option value="SC">Subcutaneous</option>
+                                            <option value="IM">Intramuscular</option>
+                                            <option value="Intrathecal">Intrathecal</option>
+                                            <option value="Intrapleural">Intrapleural</option>
+                                            <option value="Intravesical">Intravesical</option>
+                                            <option value="Intraperitoneal">Intraperitoneal</option>
+                                            <option value="Intraarterial">Intraarterial</option>
+                                            <option value="Topical">Topical</option>
+                                            <option value="Intraventricular">Intraventricular</option>
+                                            <option value="Intravitreal">Intravitreal</option>
                                         </select>
                                     </div>
                                     <div>
@@ -148,6 +171,10 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
                                         <label class="block text-gray-500 mb-1">Notes</label>
                                         <input type="text" x-model="drug.notes" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
                                     </div>
+                                    <div>
+                                        <label class="block text-gray-500 mb-1">Duration (days)</label>
+                                        <input type="text" x-model="drug.duration_days" placeholder="e.g. 5" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                    </div>
                                 </div>
                                 <input type="hidden" :name="'drugs['+drug._key+'][drug_id]'" :value="drug.drug_id">
                                 <input type="hidden" :name="'drugs['+drug._key+'][category]'" :value="drug.category">
@@ -161,6 +188,7 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
                                 <input type="hidden" :name="'drugs['+drug._key+'][lifetime_cap_unit]'" :value="drug.lifetime_cap_unit">
                                 <input type="hidden" :name="'drugs['+drug._key+'][route]'" :value="drug.route">
                                 <input type="hidden" :name="'drugs['+drug._key+'][frequency]'" :value="drug.frequency">
+                                <input type="hidden" :name="'drugs['+drug._key+'][duration_days]'" :value="drug.duration_days">
                                 <input type="hidden" :name="'drugs['+drug._key+'][notes]'" :value="drug.notes">
                             </div>
                         </template>
@@ -203,7 +231,7 @@ function protocolBuilder(existingDrugs = []) {
                 category: this.newDrug.category,
                 dose_type: 'bsa_based', dose_per_unit: '', fixed_dose: '', target_auc: '',
                 per_cycle_cap: '', per_cycle_cap_unit: '', lifetime_cap: '', lifetime_cap_unit: '',
-                route: 'IV', frequency: '', notes: '',
+                route: 'IV', frequency: '', duration_days: '', notes: '',
             });
             this.tab = this.newDrug.category;
             this.newDrug.drug_id = '';

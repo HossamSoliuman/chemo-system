@@ -39,6 +39,7 @@ class ProtocolController extends Controller
                 'name' => $request->name,
                 'diagnosis_id' => $request->diagnosis_id,
                 'description' => $request->description,
+                'tests_reminder' => $request->tests_reminder,
                 'cycle_duration_days' => $request->cycle_duration_days,
             ]);
 
@@ -70,6 +71,7 @@ class ProtocolController extends Controller
                 'name' => $request->name,
                 'diagnosis_id' => $request->diagnosis_id,
                 'description' => $request->description,
+                'tests_reminder' => $request->tests_reminder,
                 'cycle_duration_days' => $request->cycle_duration_days,
             ]);
 
@@ -93,21 +95,22 @@ class ProtocolController extends Controller
                 continue;
             }
             ProtocolDrug::create([
-                'protocol_id' => $protocol->id,
-                'drug_id' => $drugData['drug_id'],
-                'category' => $drugData['category'] ?? 'chemotherapy',
-                'dose_type' => $drugData['dose_type'] ?? 'fixed',
-                'dose_per_unit' => $drugData['dose_per_unit'] ?? null,
-                'fixed_dose' => $drugData['fixed_dose'] ?? null,
-                'target_auc' => $drugData['target_auc'] ?? null,
-                'per_cycle_cap' => $drugData['per_cycle_cap'] ?? null,
-                'per_cycle_cap_unit' => $drugData['per_cycle_cap_unit'] ?? null,
-                'lifetime_cap' => $drugData['lifetime_cap'] ?? null,
+                'protocol_id'       => $protocol->id,
+                'drug_id'           => $drugData['drug_id'],
+                'category'          => $drugData['category'] ?? 'chemotherapy',
+                'dose_type'         => $drugData['dose_type'] ?? 'fixed',
+                'dose_per_unit'     => $drugData['dose_per_unit'] ?? null,
+                'fixed_dose'        => $drugData['fixed_dose'] ?? null,
+                'target_auc'        => $drugData['target_auc'] ?? null,
+                'per_cycle_cap'     => $drugData['per_cycle_cap'] ?? null,
+                'per_cycle_cap_unit'=> $drugData['per_cycle_cap_unit'] ?? null,
+                'lifetime_cap'      => $drugData['lifetime_cap'] ?? null,
                 'lifetime_cap_unit' => $drugData['lifetime_cap_unit'] ?? null,
-                'route' => $drugData['route'] ?? null,
-                'frequency' => $drugData['frequency'] ?? null,
-                'notes' => $drugData['notes'] ?? null,
-                'sort_order' => $index,
+                'route'             => $drugData['route'] ?? null,
+                'frequency'         => $drugData['frequency'] ?? null,
+                'duration_days'     => $drugData['duration_days'] ?? null,
+                'notes'             => $drugData['notes'] ?? null,
+                'sort_order'        => $index,
             ]);
         }
     }

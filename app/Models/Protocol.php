@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Protocol extends Model
 {
-    protected $fillable = ['diagnosis_id', 'name', 'description', 'cycle_duration_days'];
+    protected $fillable = ['diagnosis_id', 'name', 'description', 'cycle_duration_days', 'tests_reminder'];
 
     public function diagnosis(): BelongsTo
     {

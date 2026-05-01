@@ -2,455 +2,558 @@
 @section('title', 'New Chemotherapy Order')
 
 @section('content')
-    <div x-data="orderForm()" x-init="init()" class="space-y-5">
+<div x-data="orderForm()" x-init="init()">
 
-        {{-- Lifetime Cap Warning Modal --}}
-        <div x-show="showCapModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
-                    </div>
-                    <h3 class="font-bold text-gray-800 text-lg">Lifetime Cap Exceeded</h3>
+    {{-- Lifetime Cap Warning Modal --}}
+    <div x-show="showCapModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
                 </div>
-                <p class="text-sm text-gray-600 mb-4">The following drugs will exceed their cumulative lifetime dose limits:
-                </p>
-                <div class="space-y-2 mb-5">
-                    <template x-for="w in capWarnings" :key="w.drug.id">
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
-                            <div class="font-semibold text-red-800" x-text="w.drug.name"></div>
-                            <div class="text-red-600 text-xs mt-1">
-                                Current total: <span x-text="parseFloat(w.current_total).toFixed(2)"></span> |
-                                New dose: <span x-text="parseFloat(w.new_dose).toFixed(2)"></span> |
-                                Cap: <span x-text="parseFloat(w.cap).toFixed(2)"></span>
-                                <span x-text="w.cap_unit"></span>
-                            </div>
+                <h3 class="font-bold text-gray-800 text-lg">Lifetime Cap Exceeded</h3>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">The following drugs will exceed their cumulative lifetime dose limits:</p>
+            <div class="space-y-2 mb-5">
+                <template x-for="w in capWarnings" :key="w.drug.id">
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
+                        <div class="font-semibold text-red-800" x-text="w.drug.name"></div>
+                        <div class="text-red-600 text-xs mt-1">
+                            Current total: <span x-text="parseFloat(w.current_total).toFixed(2)"></span> |
+                            New dose: <span x-text="parseFloat(w.new_dose).toFixed(2)"></span> |
+                            Cap: <span x-text="parseFloat(w.cap).toFixed(2)"></span> <span x-text="w.cap_unit"></span>
                         </div>
-                    </template>
-                </div>
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 mb-5">
-                    <i class="fa-solid fa-circle-info mr-1"></i>
-                    By confirming, you acknowledge this override and accept clinical responsibility.
-                </div>
-                <div class="flex gap-3">
-                    <button type="button" @click="acknowledgeAndSubmit()"
-                        class="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm py-2 rounded-lg transition font-medium">
-                        <i class="fa-solid fa-check mr-1"></i> Acknowledge & Proceed
-                    </button>
-                    <button type="button" @click="showCapModal = false"
-                        class="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition">
-                        Cancel
-                    </button>
-                </div>
+                    </div>
+                </template>
+            </div>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 mb-5">
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                By confirming, you acknowledge this override and accept clinical responsibility.
+            </div>
+            <div class="flex gap-3">
+                <button type="button" @click="acknowledgeAndSubmit()" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm py-2 rounded-lg transition font-medium">
+                    <i class="fa-solid fa-check mr-1"></i> Acknowledge & Proceed
+                </button>
+                <button type="button" @click="showCapModal = false" class="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition">Cancel</button>
             </div>
         </div>
+    </div>
 
-        {{-- Step 1: Patient --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">1</span>
-                Patient Lookup
-            </h3>
-            <div class="flex gap-3 mb-4">
-                <input type="text" x-model="mrnInput" placeholder="Enter MRN..."
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="button" @click="lookupMrn()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition">
-                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Lookup
-                </button>
-                <span x-show="patientNotFound" class="text-red-500 text-sm self-center"><i
-                        class="fa-solid fa-circle-xmark mr-1"></i> Patient not found</span>
-            </div>
+    {{-- STEP 1: Patient Lookup --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4">
+        <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">1</span>
+            Patient Lookup
+        </h3>
+        <div class="flex gap-3 mb-4">
+            <input type="text" x-model="mrnInput" @keydown.enter.prevent="lookupMrn()" placeholder="Enter File Number / MRN..."
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-52 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="button" @click="lookupMrn()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> Lookup
+            </button>
+            <span x-show="patientNotFound" class="text-red-500 text-sm self-center">
+                <i class="fa-solid fa-circle-xmark mr-1"></i> Patient not found
+            </span>
+        </div>
 
-            <div x-show="patient" x-cloak class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div x-show="patient" x-cloak>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                 <div class="bg-blue-50 rounded-lg p-3">
                     <p class="text-xs text-blue-600 mb-1">Patient Name</p>
                     <p class="font-semibold text-gray-800 text-sm" x-text="patient?.name"></p>
                 </div>
                 <div class="bg-blue-50 rounded-lg p-3">
-                    <p class="text-xs text-blue-600 mb-1">MRN</p>
+                    <p class="text-xs text-blue-600 mb-1">File No.</p>
                     <p class="font-semibold text-gray-800 text-sm font-mono" x-text="patient?.mrn"></p>
                 </div>
                 <div class="bg-blue-50 rounded-lg p-3">
-                    <p class="text-xs text-blue-600 mb-1">BSA</p>
-                    <p class="font-semibold text-gray-800 text-sm" x-text="bsa ? bsa + ' m²' : '—'"></p>
+                    <p class="text-xs text-blue-600 mb-1">Age / Gender</p>
+                    <p class="font-semibold text-gray-800 text-sm" x-text="(patient?.age ?? '—') + ' yrs / ' + (patient?.gender ?? '—')"></p>
                 </div>
                 <div class="bg-blue-50 rounded-lg p-3">
-                    <p class="text-xs text-blue-600 mb-1">CrCl</p>
-                    <p class="font-semibold text-gray-800 text-sm" x-text="crcl ? crcl + ' mL/min' : '—'"></p>
+                    <p class="text-xs text-blue-600 mb-0.5">BSA</p>
+                    <p class="font-semibold text-gray-800 text-sm" x-text="bsa ? bsa + ' m²' : '—'"></p>
+                    <p class="text-xs text-blue-500 mt-0.5">CrCl: <span x-text="crcl ? crcl + ' mL/min' : '—'"></span></p>
                 </div>
-                <input type="hidden" name="patient_id" :value="patient?.id">
             </div>
-            <div x-show="!patient" class="text-sm text-gray-400 italic">No patient selected. Enter MRN above or <a
-                    href="{{ route('patients.create') }}" class="text-blue-600 hover:underline">register a new patient</a>.
+
+            {{-- Quick Edit Panel --}}
+            <div class="border border-blue-200 rounded-lg bg-blue-50/50 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                        <i class="fa-solid fa-pen-to-square mr-1"></i> Quick Update Patient Measurements
+                    </p>
+                    <span x-show="quickSaved" class="text-xs text-green-600 font-medium">
+                        <i class="fa-solid fa-circle-check mr-1"></i> Saved & recalculated
+                    </span>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Height (cm)</label>
+                        <input type="number" step="0.1" x-model="quickEdit.height_cm"
+                            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Weight (kg)</label>
+                        <input type="number" step="0.01" x-model="quickEdit.weight_kg"
+                            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Serum Creatinine (µmol/L)</label>
+                        <input type="number" step="0.01" x-model="quickEdit.serum_creatinine"
+                            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="mt-2 flex gap-2">
+                    <button type="button" @click="saveQuickEdit()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1.5 rounded transition">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Save & Recalculate
+                    </button>
+                    <span class="text-xs text-gray-400 self-center">Changes are saved to patient record and doses recalculate immediately.</span>
+                </div>
             </div>
+            <input type="hidden" name="patient_id" :value="patient?.id">
         </div>
 
-        {{-- Step 2 & 3: Diagnosis + Protocol --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">2</span>
-                Diagnosis &amp; Protocol
-            </h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Diagnosis</label>
-                    <select x-model="diagnosisId" @change="loadProtocols()"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select diagnosis</option>
-                        @foreach ($diagnoses as $d)
-                            <option value="{{ $d->id }}">{{ $d->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Protocol</label>
-                    <select x-model="protocolId" @change="loadDrugTable()" :disabled="!protocols.length"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100">
-                        <option value="">Select protocol</option>
-                        <template x-for="p in protocols" :key="p.id">
-                            <option :value="p.id" x-text="p.name"></option>
-                        </template>
-                    </select>
-                    <input type="hidden" name="protocol_id" :value="protocolId">
-                </div>
-            </div>
-            <div x-show="cycleInfo" x-cloak class="mt-3 flex gap-3">
-                <span class="text-sm text-gray-600"><i class="fa-solid fa-rotate-right mr-1 text-blue-500"></i> Cycle
-                    <strong x-text="cycleInfo?.cycle_number"></strong></span>
-                <span x-show="cycleInfo?.is_same_cycle"
-                    class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full"><i
-                        class="fa-solid fa-link mr-1"></i> Same Cycle (within 6 days)</span>
-            </div>
+        <div x-show="!patient" class="text-sm text-gray-400 italic">
+            No patient selected. Enter file number above or
+            <a href="{{ route('patients.create') }}" class="text-blue-600 hover:underline">register a new patient</a>.
         </div>
+    </div>
 
-        {{-- Step 4: Dose Modification reason (global reason only, per-drug % is in the table) --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" x-show="drugs.length" x-cloak>
-            <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">3</span>
-                Dose Modification
-            </h3>
-            <p class="text-xs text-gray-500 mb-3">
-                <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
-                To reduce a drug dose, change its <strong>Mod %</strong> column in the table below. Each drug can have an
-                independent reduction. Leave at 100% for full dose.
-            </p>
+    {{-- STEP 2: Diagnosis & Protocol --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4">
+        <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">2</span>
+            Diagnosis &amp; Protocol
+        </h3>
+        <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Reason for Dose Modification (if any)</label>
-                <input type="text" name="dose_modification_reason"
-                    placeholder="e.g. Grade 2 neurotoxicity, renal impairment, patient request"
+                <label class="block text-xs font-medium text-gray-500 mb-1">Diagnosis</label>
+                <select x-model="diagnosisId" @change="loadProtocols()"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select diagnosis</option>
+                    @foreach($diagnoses as $d)
+                        <option value="{{ $d->id }}">{{ $d->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Protocol</label>
+                <select x-model="protocolId" @change="loadDrugTable()" :disabled="!protocols.length"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100">
+                    <option value="">Select protocol</option>
+                    <template x-for="p in protocols" :key="p.id">
+                        <option :value="p.id" x-text="p.name"></option>
+                    </template>
+                </select>
+                <input type="hidden" name="protocol_id" :value="protocolId">
+            </div>
+        </div>
+
+        <div x-show="testsReminder" x-cloak class="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+            <p class="text-xs font-semibold text-amber-700 mb-1">
+                <i class="fa-solid fa-flask-vial mr-1"></i> Required Tests / Investigations (Internal Reminder)
+            </p>
+            <p class="text-sm text-amber-800" x-text="testsReminder"></p>
+        </div>
+
+        <div x-show="cycleInfo" x-cloak class="mt-3 flex items-center gap-3 flex-wrap">
+            <span class="text-sm text-gray-600">
+                <i class="fa-solid fa-rotate-right mr-1 text-blue-500"></i>
+                Cycle <strong x-text="cycleInfo?.cycle_number"></strong>
+            </span>
+            <span x-show="cycleInfo?.is_same_cycle" class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                <i class="fa-solid fa-link mr-1"></i> Same-cycle window (within 6 days)
+            </span>
+        </div>
+
+        {{-- Split Cycle Checkbox --}}
+        <div x-show="drugs.length" x-cloak class="mt-3 flex items-start gap-3 border-t border-gray-100 pt-3">
+            <input type="checkbox" id="split_cycle" x-model="isSplitCycle" class="mt-0.5 rounded border-gray-300 text-blue-600">
+            <div>
+                <label for="split_cycle" class="text-sm text-gray-700 font-medium cursor-pointer">
+                    This is part of a split cycle (e.g. Day 1, 8, 15 of a 21-day cycle)
+                </label>
+                <p class="text-xs text-gray-400 mt-0.5">Check this when the cycle is divided into multiple weekly/daily doses. The system counts it as one cycle.</p>
+                <div x-show="isSplitCycle" class="mt-2 flex items-center gap-2">
+                    <label class="text-xs text-gray-500">Day / Week label:</label>
+                    <input type="text" x-model="cycleDayWeek" placeholder="e.g. Day 1, Day 8, Week 2..."
+                        class="border border-gray-300 rounded px-2 py-1 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <span class="text-xs text-gray-400">Will print on the order form.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- STEP 3: Dose Modification Reason --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4" x-show="drugs.length" x-cloak>
+        <h3 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">3</span>
+            Dose Modification
+        </h3>
+        <p class="text-xs text-gray-500 mb-3">
+            <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
+            To reduce a specific drug's dose, change its <strong>Mod %</strong> in the drug table. Each drug can be modified independently. Leave at 100% for full protocol dose.
+        </p>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Reason for Dose Modification (if any)</label>
+            <input type="text" name="dose_modification_reason"
+                placeholder="e.g. Grade 2 neurotoxicity, renal impairment, hepatic dysfunction..."
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+    </div>
+
+    {{-- STEP 4: Drug Tables per category --}}
+    <div x-show="drugs.length" x-cloak>
+        <template x-for="category in ['pre_medication', 'chemotherapy', 'post_medication']" :key="category">
+            <div x-show="drugsByCategory(category).length" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+                <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle text-xs"
+                            :class="{'text-green-500': category==='pre_medication', 'text-red-500': category==='chemotherapy', 'text-blue-500': category==='post_medication'}"></i>
+                        <h3 class="font-semibold text-gray-700 text-sm" x-text="categoryLabel(category)"></h3>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs">
+                        <thead class="bg-gray-50 text-gray-400 uppercase">
+                            <tr>
+                                <th class="px-3 py-2 text-left w-8">Inc.</th>
+                                <th class="px-3 py-2 text-left">Drug</th>
+                                <th class="px-3 py-2 text-left">Route</th>
+                                <th class="px-3 py-2 text-left">Frequency</th>
+                                <th class="px-3 py-2 text-left">Duration</th>
+                                <th class="px-3 py-2 text-left" x-show="category === 'chemotherapy'">Dose/Unit</th>
+                                <th class="px-3 py-2 text-left">Calc. Dose</th>
+                                <th class="px-3 py-2 text-left w-20" x-show="category !== 'pre_medication' && category !== 'post_medication' || true">Mod %</th>
+                                <th class="px-3 py-2 text-left">Final Dose</th>
+                                <th class="px-3 py-2 text-left">Unit</th>
+                                <th class="px-3 py-2 text-left">Flags</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <template x-for="drug in drugsByCategory(category)" :key="drug.protocol_drug_id">
+                                <tr :class="!drug.is_included ? 'opacity-50 bg-gray-50' : ''">
+                                    <td class="px-3 py-2">
+                                        <input type="checkbox" x-model="drug.is_included" class="rounded border-gray-300 text-blue-600">
+                                    </td>
+                                    <td class="px-3 py-2 font-medium text-gray-800" x-text="drug.drug_name"></td>
+                                    <td class="px-3 py-2 text-gray-500" x-text="drug.route || '—'"></td>
+                                    <td class="px-3 py-2 text-gray-500" x-text="drug.frequency || '—'"></td>
+                                    <td class="px-3 py-2 text-gray-500" x-text="drug.duration_days ? drug.duration_days + 'd' : '—'"></td>
+                                    <td class="px-3 py-2 text-blue-600 font-mono" x-show="category === 'chemotherapy'">
+                                        <span x-show="drug.dose_type !== 'fixed' && drug.dose_type !== 'carboplatin_calvert'" x-text="drug.dose_per_unit ? parseFloat(drug.dose_per_unit).toFixed(2) + ' ' + doseUnitLabel(drug.dose_type) : '—'"></span>
+                                        <span x-show="drug.dose_type === 'carboplatin_calvert'" x-text="'AUC ' + (drug.target_auc ?? '—')"></span>
+                                        <span x-show="drug.dose_type === 'fixed'">—</span>
+                                    </td>
+                                    <td class="px-3 py-2 font-mono text-gray-500" x-text="parseFloat(drug.base_dose).toFixed(2)"></td>
+                                    <td class="px-3 py-2">
+                                        <template x-if="drug.dose_type === 'fixed'">
+                                            <span class="text-gray-400 italic">fixed</span>
+                                        </template>
+                                        <template x-if="drug.dose_type !== 'fixed'">
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" x-model="drug.modification_pct"
+                                                    @input="applyDrugModification(drug)"
+                                                    min="1" max="200" step="5"
+                                                    class="w-14 border rounded px-1 py-0.5 text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    :class="drug.modification_pct != 100 ? 'border-orange-400 bg-orange-50 text-orange-700 font-bold' : 'border-gray-300'">
+                                                <span class="text-gray-400">%</span>
+                                            </div>
+                                        </template>
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <input type="number" step="0.01" x-model="drug.final_dose"
+                                            @change="drug.is_manually_overridden = true; drug.modification_pct = 100"
+                                            class="w-20 border rounded px-1.5 py-0.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            :class="drug.is_manually_overridden ? 'border-orange-400 bg-orange-50' : (drug.modification_pct != 100 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-300')">
+                                    </td>
+                                    <td class="px-3 py-2 text-gray-400" x-text="drug.drug_unit"></td>
+                                    <td class="px-3 py-2">
+                                        <div class="flex flex-wrap gap-1">
+                                            <span x-show="drug.cap_applied" class="text-xs bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded"><i class="fa-solid fa-circle-minus"></i> Cap</span>
+                                            <span x-show="drug.modification_pct != 100 && !drug.is_manually_overridden" class="text-xs bg-orange-100 text-orange-700 px-1 py-0.5 rounded"><span x-text="drug.modification_pct + '%'"></span></span>
+                                            <span x-show="drug.is_manually_overridden" class="text-xs bg-red-100 text-red-700 px-1 py-0.5 rounded"><i class="fa-solid fa-pen"></i></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr x-show="drug.is_manually_overridden">
+                                    <td colspan="11" class="px-3 pb-2 pt-0">
+                                        <input type="text" x-model="drug.override_reason"
+                                            placeholder="Reason for manual dose override"
+                                            class="w-full border border-orange-300 rounded px-2 py-1 text-xs bg-orange-50 focus:outline-none focus:ring-1 focus:ring-orange-400">
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    {{-- STEP 5: Clinician & Notes --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4" x-show="drugs.length" x-cloak>
+        <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">4</span>
+            Clinician Information
+        </h3>
+        <div class="grid grid-cols-3 gap-4 mb-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Consultant Physician</label>
+                <input type="text" name="consultant_name"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Clinical Pharmacist</label>
+                <input type="text" name="pharmacist_name"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Nurse</label>
+                <input type="text" name="nurse_name"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
-
-        {{-- Step 5: Drug Table --}}
-        <div x-show="drugs.length" x-cloak>
-            <template x-for="category in ['pre_medication', 'chemotherapy', 'post_medication']" :key="category">
-                <div x-show="drugsByCategory(category).length"
-                    class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
-                    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
-                        <i class="fa-solid fa-circle text-xs"
-                            :class="{ 'text-green-500': category==='pre_medication', 'text-red-500': category==='chemotherapy', 'text-blue-500': category==='post_medication' }"></i>
-                        <h3 class="font-semibold text-gray-700 text-sm" x-text="categoryLabel(category)"></h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-50 text-gray-400 text-xs uppercase">
-                                <tr>
-                                    <th class="px-3 py-2 text-left w-8">Inc.</th>
-                                    <th class="px-3 py-2 text-left">Drug</th>
-                                    <th class="px-3 py-2 text-left">Route</th>
-                                    <th class="px-3 py-2 text-left">Frequency</th>
-                                    <th class="px-3 py-2 text-left">Calc. Dose</th>
-                                    <th class="px-3 py-2 text-left w-24">Mod %</th>
-                                    <th class="px-3 py-2 text-left">Final Dose</th>
-                                    <th class="px-3 py-2 text-left">Unit</th>
-                                    <th class="px-3 py-2 text-left">Flags</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                <template x-for="drug in drugsByCategory(category)" :key="drug.protocol_drug_id">
-                                    <tr :class="!drug.is_included ? 'opacity-50 bg-gray-50' : ''">
-                                        <td class="px-3 py-2">
-                                            <input type="checkbox" x-model="drug.is_included"
-                                                class="rounded border-gray-300 text-blue-600">
-                                        </td>
-                                        <td class="px-3 py-2 font-medium text-gray-800" x-text="drug.drug_name"></td>
-                                        <td class="px-3 py-2 text-gray-500 text-xs" x-text="drug.route || '—'"></td>
-                                        <td class="px-3 py-2 text-gray-500 text-xs" x-text="drug.frequency || '—'"></td>
-                                        <td class="px-3 py-2 font-mono text-xs text-gray-500"
-                                            x-text="parseFloat(drug.base_dose).toFixed(2)"></td>
-                                        <td class="px-3 py-2">
-                                            <template x-if="drug.dose_type === 'fixed'">
-                                                <span class="text-xs text-gray-400 italic">fixed</span>
-                                            </template>
-                                            <template x-if="drug.dose_type !== 'fixed'">
-                                                <div class="flex items-center gap-1">
-                                                    <input type="number" x-model="drug.modification_pct"
-                                                        @input="applyDrugModification(drug)" min="1"
-                                                        max="200" step="5"
-                                                        class="w-16 border rounded px-1.5 py-1 text-xs font-mono text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                        :class="drug.modification_pct != 100 ?
-                                                            'border-orange-400 bg-orange-50 text-orange-700 font-bold' :
-                                                            'border-gray-300'">
-                                                    <span class="text-xs text-gray-400">%</span>
-                                                </div>
-                                            </template>
-                                        </td>
-                                        <td class="px-3 py-2">
-                                            <input type="number" step="0.01" x-model="drug.final_dose"
-                                                @change="drug.is_manually_overridden = true; drug.modification_pct = 100"
-                                                class="w-24 border border-gray-300 rounded px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                :class="drug.is_manually_overridden ? 'border-orange-400 bg-orange-50' : (drug
-                                                    .modification_pct != 100 ? 'border-yellow-400 bg-yellow-50' : ''
-                                                    )">
-                                        </td>
-                                        <td class="px-3 py-2 text-xs text-gray-400" x-text="drug.drug_unit"></td>
-                                        <td class="px-3 py-2">
-                                            <div class="flex flex-wrap gap-1">
-                                                <span x-show="drug.cap_applied"
-                                                    class="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded whitespace-nowrap"><i
-                                                        class="fa-solid fa-circle-minus"></i> Cap</span>
-                                                <span x-show="drug.modification_pct != 100 && !drug.is_manually_overridden"
-                                                    class="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded whitespace-nowrap"><i
-                                                        class="fa-solid fa-percent"></i> <span
-                                                        x-text="drug.modification_pct+'%'"></span></span>
-                                                <span x-show="drug.is_manually_overridden"
-                                                    class="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded whitespace-nowrap"><i
-                                                        class="fa-solid fa-pen"></i> Override</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr x-show="drug.is_manually_overridden"
-                                        :class="!drug.is_included ? 'opacity-50' : ''">
-                                        <td colspan="9" class="px-3 pb-2 pt-0">
-                                            <input type="text" x-model="drug.override_reason"
-                                                placeholder="Reason for manual dose override (required)"
-                                                class="w-full border border-orange-300 rounded px-2 py-1 text-xs bg-orange-50 focus:outline-none focus:ring-1 focus:ring-orange-400">
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </template>
-        </div>
-
-        {{-- Step 6: Clinician Info & Notes --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" x-show="drugs.length" x-cloak>
-            <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">4</span>
-                Clinician &amp; Notes
-            </h3>
-            <div class="grid grid-cols-3 gap-4 mb-3">
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Consultant</label>
-                    <input type="text" name="consultant_name"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Pharmacist</label>
-                    <input type="text" name="pharmacist_name"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Nurse</label>
-                    <input type="text" name="nurse_name"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Dept / Unit</label>
+                <input type="text" name="dept_unit"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Clinical Notes</label>
-                <textarea name="notes" rows="2"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Room / Bed No.</label>
+                <input type="text" name="room_bed"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
-
-        {{-- Submit --}}
-        <div x-show="drugs.length" x-cloak class="flex gap-3">
-            <button type="button" @click="submitOrder()" :disabled="submitting"
-                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2.5 rounded-lg transition font-medium disabled:opacity-50">
-                <i class="fa-solid fa-floppy-disk mr-1"></i>
-                <span x-text="submitting ? 'Saving...' : 'Save as Draft'"></span>
-            </button>
-            <a href="{{ route('orders.index') }}"
-                class="text-gray-500 hover:text-gray-700 text-sm px-5 py-2.5 rounded-lg border border-gray-200 transition">Cancel</a>
+        <div class="mt-3">
+            <label class="block text-xs font-medium text-gray-500 mb-1">Clinical Notes / Allergies</label>
+            <textarea name="notes" rows="2"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
         </div>
     </div>
+
+    {{-- Submit --}}
+    <div x-show="drugs.length" x-cloak class="flex gap-3">
+        <button type="button" @click="submitOrder()" :disabled="submitting"
+            class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2.5 rounded-lg transition font-medium disabled:opacity-50">
+            <i class="fa-solid fa-floppy-disk mr-1"></i>
+            <span x-text="submitting ? 'Saving...' : 'Save as Draft'"></span>
+        </button>
+        <a href="{{ route('orders.index') }}"
+            class="text-gray-500 hover:text-gray-700 text-sm px-5 py-2.5 rounded-lg border border-gray-200 transition">Cancel</a>
+    </div>
+
+</div>
 @endsection
 
 @push('scripts')
-    <script>
-        function orderForm() {
-            return {
-                mrnInput: '{{ request('mrn', '') }}',
-                patient: null,
-                patientNotFound: false,
-                diagnosisId: '',
-                protocolId: '',
-                protocols: [],
-                drugs: [],
-                cycleInfo: null,
-                bsa: null,
-                crcl: null,
-                showCapModal: false,
-                capWarnings: [],
-                submitting: false,
-                _pendingPayload: null,
+<script>
+function orderForm() {
+    return {
+        mrnInput: '{{ request("mrn", "") }}',
+        patient: null,
+        patientNotFound: false,
+        quickEdit: { height_cm: '', weight_kg: '', serum_creatinine: '' },
+        quickSaved: false,
+        diagnosisId: '',
+        protocolId: '',
+        protocols: [],
+        drugs: [],
+        cycleInfo: null,
+        bsa: null,
+        crcl: null,
+        testsReminder: null,
+        isSplitCycle: false,
+        cycleDayWeek: '',
+        showCapModal: false,
+        capWarnings: [],
+        submitting: false,
+        _pendingPayload: null,
 
-                init() {
-                    @if (request('patient_id'))
-                        this.loadPatientById({{ request('patient_id') }});
-                    @endif
+        init() {},
+
+        async lookupMrn() {
+            this.patientNotFound = false;
+            const res = await fetch(`/api/patients/mrn/${encodeURIComponent(this.mrnInput)}`);
+            if (!res.ok) { this.patient = null; this.patientNotFound = true; return; }
+            const data = await res.json();
+            if (data.found) {
+                this.setPatient(data.patient, data.patient.bsa, data.patient.crcl);
+            } else {
+                this.patient = null;
+                this.patientNotFound = true;
+            }
+        },
+
+        setPatient(p, bsa, crcl) {
+            this.patient = p;
+            this.quickEdit.height_cm = p.height_cm;
+            this.quickEdit.weight_kg = p.weight_kg;
+            this.quickEdit.serum_creatinine = p.serum_creatinine;
+            if (bsa) this.bsa = bsa;
+            if (crcl) this.crcl = crcl;
+            if (this.protocolId) this.loadDrugTable();
+        },
+
+        async saveQuickEdit() {
+            if (!this.patient) return;
+            const res = await fetch(`/api/patients/${this.patient.id}/quick-update`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
+                body: JSON.stringify({
+                    height_cm: this.quickEdit.height_cm,
+                    weight_kg: this.quickEdit.weight_kg,
+                    serum_creatinine: this.quickEdit.serum_creatinine,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.patient = { ...this.patient, ...data.patient };
+                this.bsa = data.bsa;
+                this.crcl = data.crcl;
+                this.quickSaved = true;
+                setTimeout(() => this.quickSaved = false, 3000);
+                if (this.protocolId) this.loadDrugTable();
+            }
+        },
 
-                async lookupMrn() {
-                    this.patientNotFound = false;
-                    const res = await fetch(`/api/patients/mrn/${encodeURIComponent(this.mrnInput)}`);
-                    const data = await res.json();
-                    if (data.found) {
-                        this.patient = data.patient;
-                        if (this.protocolId) this.loadDrugTable();
-                    } else {
-                        this.patient = null;
-                        this.patientNotFound = true;
-                    }
+        async loadProtocols() {
+            this.protocolId = '';
+            this.drugs = [];
+            this.cycleInfo = null;
+            this.testsReminder = null;
+            if (!this.diagnosisId) { this.protocols = []; return; }
+            const res = await fetch(`/api/protocols?diagnosis_id=${this.diagnosisId}`);
+            this.protocols = await res.json();
+        },
+
+        async loadDrugTable() {
+            if (!this.patient || !this.protocolId) return;
+            const selectedProtocol = this.protocols.find(p => p.id == this.protocolId);
+            this.testsReminder = selectedProtocol?.tests_reminder || null;
+            const res = await fetch('/api/orders/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
+                body: JSON.stringify({ patient_id: this.patient.id, protocol_id: this.protocolId }),
+            });
+            const data = await res.json();
+            this.bsa = data.bsa;
+            this.crcl = data.crcl;
+            this.cycleInfo = data.cycle_info;
+            this.drugs = data.drugs.map(d => ({
+                ...d,
+                base_dose: d.calculated_dose,
+                final_dose: d.final_dose,
+                modification_pct: 100,
+                is_included: true,
+                is_manually_overridden: false,
+                override_reason: '',
+            }));
+        },
 
-                async loadPatientById(id) {},
+        applyDrugModification(drug) {
+            if (drug.dose_type === 'fixed') return;
+            const pct = parseFloat(drug.modification_pct);
+            if (isNaN(pct)) return;
+            drug.is_manually_overridden = false;
+            drug.override_reason = '';
+            let newFinal = parseFloat((drug.base_dose * (pct / 100)).toFixed(2));
+            if (drug.per_cycle_cap && newFinal > drug.per_cycle_cap) {
+                newFinal = drug.per_cycle_cap;
+                drug.cap_applied = true;
+            }
+            drug.final_dose = newFinal;
+        },
 
-                async loadProtocols() {
-                    this.protocolId = '';
-                    this.drugs = [];
-                    this.cycleInfo = null;
-                    if (!this.diagnosisId) {
-                        this.protocols = [];
-                        return;
-                    }
-                    const res = await fetch(`/api/protocols?diagnosis_id=${this.diagnosisId}`);
-                    this.protocols = await res.json();
-                },
+        drugsByCategory(cat) {
+            return this.drugs.filter(d => d.category === cat);
+        },
 
-                async loadDrugTable() {
-                    if (!this.patient || !this.protocolId) return;
-                    const res = await fetch('/api/orders/calculate', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({
-                            patient_id: this.patient.id,
-                            protocol_id: this.protocolId,
-                        }),
-                    });
-                    const data = await res.json();
-                    this.bsa = data.bsa;
-                    this.crcl = data.crcl;
-                    this.cycleInfo = data.cycle_info;
-                    this.drugs = data.drugs.map(d => ({
-                        ...d,
-                        base_dose: d.calculated_dose,
-                        final_dose: d.final_dose,
-                        modification_pct: 100,
-                        is_included: true,
-                        is_manually_overridden: false,
-                        override_reason: '',
-                    }));
-                },
+        categoryLabel(cat) {
+            return { pre_medication: 'Pre-Medications', chemotherapy: 'Chemotherapy', post_medication: 'Post-Medications' }[cat] || cat;
+        },
 
-                applyDrugModification(drug) {
-                    const pct = parseFloat(drug.modification_pct);
-                    if (isNaN(pct) || drug.dose_type === 'fixed') return;
-                    drug.is_manually_overridden = false;
-                    drug.override_reason = '';
-                    const newFinal = parseFloat((drug.base_dose * (pct / 100)).toFixed(2));
-                    if (drug.cap_applied && drug.per_cycle_cap && newFinal > drug.per_cycle_cap) {
-                        drug.final_dose = drug.per_cycle_cap;
-                    } else {
-                        drug.final_dose = newFinal;
-                    }
-                },
+        doseUnitLabel(dose_type) {
+            if (dose_type === 'bsa_based') return 'mg/m²';
+            if (dose_type === 'weight_based') return 'mg/kg';
+            if (dose_type === 'crcl_based') return 'mg/mL/min';
+            return '';
+        },
 
-                drugsByCategory(cat) {
-                    return this.drugs.filter(d => d.category === cat);
-                },
-
-                categoryLabel(cat) {
-                    return {
-                        pre_medication: 'Pre-Medications',
-                        chemotherapy: 'Chemotherapy',
-                        post_medication: 'Post-Medications'
-                    } [cat] || cat;
-                },
-
-                async submitOrder() {
-                    if (!this.patient || !this.protocolId) {
-                        alert('Please select a patient and protocol.');
-                        return;
-                    }
-                    this.submitting = true;
-                    const payload = {
-                        patient_id: this.patient.id,
-                        protocol_id: this.protocolId,
-                        dose_modification_reason: document.querySelector('[name=dose_modification_reason]')?.value,
-                        consultant_name: document.querySelector('[name=consultant_name]')?.value,
-                        pharmacist_name: document.querySelector('[name=pharmacist_name]')?.value,
-                        nurse_name: document.querySelector('[name=nurse_name]')?.value,
-                        notes: document.querySelector('[name=notes]')?.value,
-                        drugs: this.drugs.map(d => ({
-                            protocol_drug_id: d.protocol_drug_id,
-                            final_dose: d.final_dose,
-                            modification_pct: d.modification_pct,
-                            is_included: d.is_included ? 1 : 0,
-                            is_manually_overridden: d.is_manually_overridden ? 1 : 0,
-                            override_reason: d.override_reason || '',
-                        })),
-                    };
-
-                    const res = await fetch('/orders', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(payload),
-                    });
-                    const data = await res.json();
-                    this.submitting = false;
-
-                    if (data.requires_acknowledgment) {
-                        this.capWarnings = data.lifetime_warnings;
-                        this.showCapModal = true;
-                        this._pendingPayload = payload;
-                    } else if (data.redirect) {
-                        window.location.href = data.redirect;
-                    }
-                },
-
-                async acknowledgeAndSubmit() {
-                    this.showCapModal = false;
-                    this.submitting = true;
-                    const payload = {
-                        ...this._pendingPayload,
-                        lifetime_cap_acknowledged: true
-                    };
-                    const res = await fetch('/orders', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(payload),
-                    });
-                    const data = await res.json();
-                    this.submitting = false;
-                    if (data.redirect) window.location.href = data.redirect;
-                },
+        async submitOrder() {
+            if (!this.patient || !this.protocolId) {
+                alert('Please select a patient and protocol.');
+                return;
+            }
+            this.submitting = true;
+            const payload = {
+                patient_id: this.patient.id,
+                protocol_id: this.protocolId,
+                is_split_cycle: this.isSplitCycle ? 1 : 0,
+                cycle_day_week: this.isSplitCycle ? this.cycleDayWeek : null,
+                dose_modification_reason: document.querySelector('[name=dose_modification_reason]')?.value,
+                consultant_name: document.querySelector('[name=consultant_name]')?.value,
+                pharmacist_name: document.querySelector('[name=pharmacist_name]')?.value,
+                nurse_name: document.querySelector('[name=nurse_name]')?.value,
+                notes: document.querySelector('[name=notes]')?.value,
+                drugs: this.drugs.map(d => ({
+                    protocol_drug_id: d.protocol_drug_id,
+                    final_dose: d.final_dose,
+                    modification_pct: d.modification_pct,
+                    is_included: d.is_included ? 1 : 0,
+                    is_manually_overridden: d.is_manually_overridden ? 1 : 0,
+                    override_reason: d.override_reason || '',
+                })),
             };
-        }
-    </script>
+
+            const res = await fetch('/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            this.submitting = false;
+
+            if (data.requires_acknowledgment) {
+                this.capWarnings = data.lifetime_warnings;
+                this.showCapModal = true;
+                this._pendingPayload = payload;
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        },
+
+        async acknowledgeAndSubmit() {
+            this.showCapModal = false;
+            this.submitting = true;
+            const payload = { ...this._pendingPayload, lifetime_cap_acknowledged: true };
+            const res = await fetch('/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            this.submitting = false;
+            if (data.redirect) window.location.href = data.redirect;
+        },
+    };
+}
+</script>
 @endpush

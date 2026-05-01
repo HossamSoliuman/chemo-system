@@ -84,11 +84,9 @@ class OrderController extends Controller
             $isOverridden = false;
             $overrideReason = null;
 
-            if (
-                $submittedDrug && isset($submittedDrug['final_dose'])
+            if ($submittedDrug && isset($submittedDrug['final_dose'])
                 && (float) $submittedDrug['final_dose'] != $doseResult['final']
-                && (float) $submittedDrug['final_dose'] > 0
-            ) {
+                && (float) $submittedDrug['final_dose'] > 0) {
                 $finalDose = (float) $submittedDrug['final_dose'];
                 $isOverridden = true;
                 $overrideReason = $submittedDrug['override_reason'] ?? null;
@@ -134,6 +132,8 @@ class OrderController extends Controller
                 'protocol_id' => $protocol->id,
                 'cycle_number' => $cycleInfo['cycle_number'],
                 'is_same_cycle' => $cycleInfo['is_same_cycle'],
+                'is_split_cycle' => $request->boolean('is_split_cycle'),
+                'cycle_day_week' => $request->boolean('is_split_cycle') ? $request->cycle_day_week : null,
                 'parent_order_id' => $cycleInfo['parent_order_id'],
                 'bsa' => $bsa,
                 'crcl' => $crcl,

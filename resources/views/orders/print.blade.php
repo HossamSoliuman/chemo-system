@@ -1,256 +1,362 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chemotherapy Order — {{ $order->order_number }}</title>
-    <script src="/lib/tailwind/tailwind.js"></script>
-    <link rel="stylesheet" href="/lib/fontawesome/downloaded/css/all.min.css">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11px; color: #000; background: #fff; padding: 1cm; }
+        .no-print { display: block; }
         @media print {
-            @page {
-                margin: 1.5cm;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            body {
-                font-size: 11px !important;
-            }
+            @page { margin: 1cm; size: A4; }
+            .no-print { display: none !important; }
+            body { padding: 0; }
         }
-
-        body {
-            font-family: 'Arial', sans-serif;
-        }
+        table { border-collapse: collapse; width: 100%; }
+        td, th { padding: 3px 5px; vertical-align: top; }
+        .border-all td, .border-all th { border: 1px solid #000; }
+        .outer-box { border: 2px solid #000; margin-bottom: 6px; }
+        .section-header { background: #000; color: #fff; font-weight: bold; font-size: 10px; padding: 3px 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .field-label { font-weight: bold; white-space: nowrap; }
+        .field-line { border-bottom: 1px solid #000; min-width: 80px; display: inline-block; }
+        .header-left { border-right: 2px solid #000; padding: 8px; }
+        .header-right { padding: 8px; }
+        .protocol-title { font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+        .protocol-arabic { font-size: 13px; text-align: center; margin-bottom: 6px; }
+        .modified-banner { border: 2px solid #cc0000; background: #fff0f0; padding: 4px 8px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .drug-table th { background: #f0f0f0; font-weight: bold; font-size: 10px; border: 1px solid #000; padding: 3px 4px; text-align: left; }
+        .drug-table td { border: 1px solid #000; padding: 3px 4px; font-size: 11px; }
+        .drug-table tr.excluded td { color: #999; text-decoration: line-through; }
+        .chemo-section { border: 2px solid #000; margin-bottom: 6px; }
+        .chemo-header { background: #000; color: #fff; font-weight: bold; padding: 3px 6px; font-size: 11px; }
+        .sig-table td { border: 1px solid #000; padding: 8px 6px; }
+        .dose-mod-flag { background: #fff3cd; border: 1px solid #ffc107; padding: 2px 6px; font-size: 10px; font-weight: bold; display: inline-block; }
+        .split-badge { background: #e3f2fd; border: 1px solid #1976d2; color: #1976d2; padding: 2px 6px; font-size: 10px; font-weight: bold; display: inline-block; }
     </style>
 </head>
+<body>
 
-<body class="bg-white text-gray-900 p-6">
+<div class="no-print" style="margin-bottom:12px; display:flex; gap:8px;">
+    <button onclick="window.print()" style="background:#2563eb;color:#fff;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-size:13px;">
+        &#128438; Print
+    </button>
+    <a href="{{ route('orders.show', $order) }}" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;padding:7px 18px;border-radius:6px;text-decoration:none;font-size:13px;">
+        &#8592; Back
+    </a>
+</div>
 
-    <div class="no-print flex gap-3 mb-6">
-        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-5 py-2 rounded-lg">
-            <i class="fa-solid fa-print mr-1"></i> Print
-        </button>
-        <a href="{{ route('orders.show', $order) }}"
-            class="border border-gray-200 text-gray-600 text-sm px-5 py-2 rounded-lg hover:bg-gray-50">
-            <i class="fa-solid fa-arrow-left mr-1"></i> Back
-        </a>
-    </div>
-
-    {{-- Header --}}
-    <div class="border-2 border-gray-800 rounded mb-4">
-        <div class="bg-gray-800 text-white px-4 py-2 flex justify-between items-center">
-            <div>
-                <p class="text-xs uppercase tracking-widest text-gray-300">Chemotherapy Order Form</p>
-                <p class="font-bold text-lg">{{ env('HOSPITAL_NAME', 'Oncology Center') }}</p>
-            </div>
-            <div class="text-right">
-                <p class="font-mono font-bold text-lg">{{ $order->order_number }}</p>
-                <p class="text-xs text-gray-300">{{ $order->ordered_at->format('d M Y, H:i') }}</p>
-            </div>
-        </div>
-    </div>
-
-    @if ($order->is_modified_protocol)
-        <div class="border-2 border-red-600 bg-red-50 rounded px-4 py-2 mb-4 flex items-center gap-3">
-            <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
-            <div>
-                <p class="font-bold text-red-800 uppercase text-sm tracking-wide">Modified Protocol Order</p>
-                @if ($order->dose_modification_reason)
-                    <p class="text-xs text-red-700">Reason: {{ $order->dose_modification_reason }}</p>
-                @endif
-            </div>
-            <div class="ml-auto text-right text-sm">
-                <p class="font-semibold text-red-800">{{ $order->dose_modification_percent }}% Dose</p>
-            </div>
-        </div>
-    @endif
-
-    {{-- Patient Info --}}
-    <div class="border border-gray-300 rounded mb-4">
-        <div class="bg-gray-100 px-3 py-1 border-b border-gray-300">
-            <p class="text-xs font-bold uppercase tracking-wide text-gray-600">Patient Information</p>
-        </div>
-        <div class="grid grid-cols-4 gap-0 text-xs">
-            <div class="border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Patient Name</p>
-                <p class="font-bold text-sm">{{ $order->patient->name }}</p>
-            </div>
-            <div class="border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">MRN</p>
-                <p class="font-bold font-mono text-sm">{{ $order->patient->mrn }}</p>
-            </div>
-            <div class="border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Date of Birth / Gender</p>
-                <p class="font-bold">{{ $order->patient->date_of_birth->format('d M Y') }} /
-                    {{ ucfirst($order->patient->gender) }}</p>
-            </div>
-            <div class="px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Age</p>
-                <p class="font-bold">{{ $order->patient->age }} years</p>
-            </div>
-            <div class="border-t border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Height</p>
-                <p class="font-bold">{{ $order->patient->height_cm }} cm</p>
-            </div>
-            <div class="border-t border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Weight</p>
-                <p class="font-bold">{{ $order->patient->weight_kg }} kg</p>
-            </div>
-            <div class="border-t border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">BSA</p>
-                <p class="font-bold">{{ $order->bsa }} m²</p>
-            </div>
-            <div class="border-t border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">CrCl (Cockcroft-Gault)</p>
-                <p class="font-bold">{{ $order->crcl }} mL/min</p>
-            </div>
-        </div>
-    </div>
-
-    {{-- Protocol Info --}}
-    <div class="border border-gray-300 rounded mb-4">
-        <div class="bg-gray-100 px-3 py-1 border-b border-gray-300">
-            <p class="text-xs font-bold uppercase tracking-wide text-gray-600">Protocol Information</p>
-        </div>
-        <div class="grid grid-cols-4 gap-0 text-xs">
-            <div class="border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Diagnosis</p>
-                <p class="font-bold">{{ $order->protocol->diagnosis->name }}</p>
-            </div>
-            <div class="border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Protocol</p>
-                <p class="font-bold">{{ $order->protocol->name }}</p>
-            </div>
-            <div class="border-r border-gray-200 px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Cycle Number</p>
-                <p class="font-bold">{{ $order->cycle_number }}{{ $order->is_same_cycle ? ' (Same Cycle)' : '' }}</p>
-            </div>
-            <div class="px-3 py-2">
-                <p class="text-gray-500 mb-0.5">Order Date</p>
-                <p class="font-bold">{{ $order->ordered_at->format('d M Y H:i') }}</p>
-            </div>
-        </div>
-    </div>
-
-    {{-- Drug Tables --}}
-    @foreach (['pre_medication' => 'Pre-Medications', 'chemotherapy' => 'Chemotherapy Agents', 'post_medication' => 'Post-Medications'] as $cat => $catLabel)
-        @php $catDrugs = $order->orderDrugs->where('category', $cat)->where('is_included', true)->values(); @endphp
-        @if ($catDrugs->count() > 0)
-            <div class="border border-gray-300 rounded mb-4">
-                <div
-                    class="px-3 py-1 border-b border-gray-300 {{ $cat === 'chemotherapy' ? 'bg-red-50' : 'bg-gray-100' }}">
-                    <p
-                        class="text-xs font-bold uppercase tracking-wide {{ $cat === 'chemotherapy' ? 'text-red-700' : 'text-gray-600' }}">
-                        @if ($cat === 'chemotherapy')
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                        @endif
-                        {{ $catLabel }}
-                    </p>
-                </div>
-                <table class="w-full text-xs">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-3 py-1.5 text-left font-semibold text-gray-600">Drug Name</th>
-                            <th class="px-3 py-1.5 text-left font-semibold text-gray-600">Route</th>
-                            <th class="px-3 py-1.5 text-left font-semibold text-gray-600">Frequency</th>
-                            <th class="px-3 py-1.5 text-right font-semibold text-gray-600">Calc. Dose</th>
-                            <th
-                                class="px-3 py-1.5 text-right font-semibold text-gray-600 {{ $cat === 'chemotherapy' ? 'text-red-700 bg-red-50' : '' }}">
-                                Final Dose</th>
-                            <th class="px-3 py-1.5 text-left font-semibold text-gray-600">Unit</th>
-                            <th class="px-3 py-1.5 text-left font-semibold text-gray-600">Notes / Flags</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach ($catDrugs as $od)
-                            <tr class="{{ $od->is_manually_overridden ? 'bg-orange-50' : '' }}">
-                                <td class="px-3 py-2 font-semibold">{{ $od->drug->name }}</td>
-                                <td class="px-3 py-2 text-gray-600">{{ $od->protocolDrug->route ?? '—' }}</td>
-                                <td class="px-3 py-2 text-gray-600">{{ $od->protocolDrug->frequency ?? '—' }}</td>
-                                <td class="px-3 py-2 text-right font-mono text-gray-500">
-                                    {{ number_format($od->calculated_dose, 2) }}</td>
-                                <td
-                                    class="px-3 py-2 text-right font-mono font-bold {{ $od->is_manually_overridden ? 'text-orange-700' : '' }} {{ $cat === 'chemotherapy' ? 'text-red-800' : '' }}">
-                                    {{ number_format($od->final_dose, 2) }}
-                                </td>
-                                <td class="px-3 py-2">{{ $od->drug->unit }}</td>
-                                <td class="px-3 py-2">
-                                    @if ($od->cap_applied)
-                                        <span class="bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded text-xs mr-1">Cap
-                                            Applied</span>
-                                    @endif
-                                    @if ($od->is_manually_overridden)
-                                        <span class="bg-orange-100 text-orange-700 px-1 py-0.5 rounded text-xs"
-                                            title="{{ $od->override_reason }}">Override{{ $od->override_reason ? ': ' . $od->override_reason : '' }}</span>
-                                    @endif
-                                    @if ($od->protocolDrug->notes)
-                                        <span class="text-gray-500">{{ $od->protocolDrug->notes }}</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+{{-- Modified Protocol Banner --}}
+@if($order->is_modified_protocol)
+<div class="modified-banner">
+    <span style="font-size:18px;">&#9888;</span>
+    <div>
+        <strong style="color:#cc0000;font-size:12px;text-transform:uppercase;">Modified Protocol Order</strong>
+        @if($order->dose_modification_reason)
+        <div style="font-size:11px;color:#cc0000;">Reason: {{ $order->dose_modification_reason }}</div>
         @endif
-    @endforeach
-
-    {{-- Excluded drugs (if any) --}}
-    @php $excludedDrugs = $order->orderDrugs->where('is_included', false); @endphp
-    @if ($excludedDrugs->count() > 0)
-        <div class="border border-gray-200 rounded mb-4 bg-gray-50">
-            <div class="px-3 py-1 border-b border-gray-200">
-                <p class="text-xs font-semibold text-gray-500 uppercase">Excluded Drugs</p>
-            </div>
-            <p class="px-3 py-2 text-xs text-gray-500">
-                {{ $excludedDrugs->pluck('drug.name')->implode(', ') }}
-            </p>
-        </div>
-    @endif
-
-    {{-- Notes --}}
-    @if ($order->notes)
-        <div class="border border-gray-300 rounded mb-4 p-3 text-sm">
-            <p class="font-semibold text-gray-600 text-xs uppercase mb-1">Clinical Notes</p>
-            <p class="text-gray-700">{{ $order->notes }}</p>
-        </div>
-    @endif
-
-    {{-- Signatures --}}
-    <div class="border border-gray-300 rounded">
-        <div class="bg-gray-100 px-3 py-1 border-b border-gray-300">
-            <p class="text-xs font-bold uppercase tracking-wide text-gray-600">Signatures</p>
-        </div>
-        <div class="grid grid-cols-3 divide-x divide-gray-200 text-xs">
-            <div class="px-4 py-4">
-                <p class="text-gray-500 mb-1">Consultant Physician</p>
-                <p class="font-semibold mb-6">{{ $order->consultant_name ?: '____________________________' }}</p>
-                <div class="border-b border-gray-400 mt-2 mb-1"></div>
-                <p class="text-gray-400">Signature &amp; Date</p>
-            </div>
-            <div class="px-4 py-4">
-                <p class="text-gray-500 mb-1">Clinical Pharmacist</p>
-                <p class="font-semibold mb-6">{{ $order->pharmacist_name ?: '____________________________' }}</p>
-                <div class="border-b border-gray-400 mt-2 mb-1"></div>
-                <p class="text-gray-400">Signature &amp; Date</p>
-            </div>
-            <div class="px-4 py-4">
-                <p class="text-gray-500 mb-1">Nurse</p>
-                <p class="font-semibold mb-6">{{ $order->nurse_name ?: '____________________________' }}</p>
-                <div class="border-b border-gray-400 mt-2 mb-1"></div>
-                <p class="text-gray-400">Signature &amp; Date</p>
-            </div>
-        </div>
     </div>
-
-    <div class="mt-4 text-center text-xs text-gray-400">
-        Printed: {{ now()->format('d M Y H:i') }} &mdash; {{ env('HOSPITAL_NAME') }} &mdash;
-        {{ $order->order_number }} &mdash; CONFIDENTIAL MEDICAL DOCUMENT
+    <div style="margin-left:auto;font-size:13px;font-weight:bold;color:#cc0000;">
+        Dose Modified Order
     </div>
+</div>
+@endif
+
+{{-- HEADER --}}
+<div class="outer-box">
+    <table style="width:100%;">
+        <tr>
+            <td class="header-left" style="width:38%; vertical-align:middle;">
+                <div style="font-size:9px; font-weight:bold; color:#555;">{{ env('HOSPITAL_NAME', 'General Oncology Center') }}</div>
+                <div class="protocol-title">CHEMOTHERAPY PROTOCOL</div>
+                <div class="protocol-arabic">بروتوكول العلاج الكيميائي</div>
+                <div style="font-size:10px; color:#555;">{{ env('HOSPITAL_ADDRESS', '') }}</div>
+            </td>
+            <td class="header-right" style="vertical-align:top;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <tr>
+                        <td style="width:160px;"><span class="field-label">Medical Record Number:</span></td>
+                        <td><span class="field-line" style="min-width:120px;">{{ $order->patient->mrn }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="field-label">Name:</span></td>
+                        <td><span class="field-line" style="min-width:200px;">{{ $order->patient->name }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="field-label">Age:</span></td>
+                        <td>
+                            {{ $order->patient->age }} yrs &nbsp;&nbsp;&nbsp;
+                            <span class="field-label">Sex:</span>
+                            {{ $order->patient->gender === 'male' ? '&#9746; M &nbsp; &#9744; F' : '&#9744; M &nbsp; &#9746; F' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="field-label">Consultant In-charge:</span></td>
+                        <td><span class="field-line" style="min-width:160px;">{{ $order->consultant_name ?? '' }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="field-label">Dept / Unit:</span></td>
+                        <td>
+                            <span class="field-line" style="min-width:90px;">&nbsp;</span>
+                            &nbsp; <span class="field-label">Room / Bed:</span>
+                            <span class="field-line" style="min-width:60px;">&nbsp;</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+
+{{-- PATIENT CLINICAL INFO --}}
+<div class="outer-box">
+    <table style="width:100%; border-collapse:collapse;">
+        <tr>
+            <td style="padding:4px 6px; width:33%; border-right:1px solid #ccc;">
+                <span class="field-label">Pregnant:</span> &#9744; Yes &nbsp; &#9744; No &nbsp;&nbsp;
+                <span class="field-label">Lactating:</span> &#9744; Yes &nbsp; &#9744; No
+            </td>
+            <td style="padding:4px 6px; width:34%; border-right:1px solid #ccc;">
+                <span class="field-label">Allergy:</span> &#9744; Yes &nbsp; &#9744; No &nbsp;
+                <span class="field-label">If yes:</span> <span class="field-line" style="min-width:80px;">{{ $order->notes ?? '' }}</span>
+            </td>
+            <td style="padding:4px 6px; width:33%;">
+                <span class="field-label">ECOG Status:</span> <span class="field-line" style="min-width:60px;"></span>
+            </td>
+        </tr>
+        <tr style="border-top:1px solid #ccc;">
+            <td colspan="2" style="padding:4px 6px; border-right:1px solid #ccc;">
+                <span class="field-label">Diagnosis:</span> {{ $order->protocol->diagnosis->name }}
+                &nbsp;&nbsp; <span class="field-label">Stage:</span> <span class="field-line" style="min-width:50px;"></span>
+            </td>
+            <td style="padding:4px 6px;">
+                <span class="field-label">ECOG=</span><span class="field-line" style="min-width:40px;"></span>
+            </td>
+        </tr>
+        <tr style="border-top:1px solid #ccc;">
+            <td colspan="2" style="padding:4px 6px; border-right:1px solid #ccc;">
+                <span class="field-label">Protocol:</span> {{ $order->protocol->name }}
+                @if($order->is_split_cycle && $order->cycle_day_week)
+                    &nbsp; <span class="split-badge">{{ $order->cycle_day_week }}</span>
+                @endif
+            </td>
+            <td style="padding:4px 6px;"><span class="field-label">SETTING OF CHEMOTHERAPY:</span></td>
+        </tr>
+        <tr style="border-top:1px solid #ccc;">
+            <td colspan="3" style="padding:4px 6px;">
+                <span class="field-label">Ht:</span> {{ $order->patient->height_cm }} cm &nbsp;&nbsp;&nbsp;
+                <span class="field-label">Wt:</span> {{ $order->patient->weight_kg }} kg &nbsp;&nbsp;&nbsp;
+                <span class="field-label">BSA:</span> {{ $order->bsa }} m² &nbsp;&nbsp;&nbsp;
+                <span class="field-label">CrCl:</span> {{ $order->crcl }} mL/min &nbsp;&nbsp;&nbsp;
+                <span class="field-label">Cycle:</span> {{ $order->cycle_number }}
+                @if($order->is_same_cycle) <small>(same cycle)</small> @endif
+                &nbsp;&nbsp;&nbsp;
+                <span class="field-label">Date:</span> {{ $order->ordered_at->format('d/m/Y') }}
+            </td>
+        </tr>
+        @if($order->is_modified_protocol)
+        <tr style="border-top:1px solid #ccc; background:#fff8e1;">
+            <td colspan="3" style="padding:4px 6px;">
+                <span class="field-label">Dose modification for:</span>
+                &#9746; Other Toxicity: {{ $order->dose_modification_reason ?? '—' }}
+            </td>
+        </tr>
+        @else
+        <tr style="border-top:1px solid #ccc;">
+            <td colspan="3" style="padding:4px 6px;">
+                <span class="field-label">Dose modification for:</span>
+                &#9744; Cardiology &nbsp;&nbsp; &#9744; Other Toxicity <span class="field-line" style="min-width:120px;"></span>
+            </td>
+        </tr>
+        @endif
+    </table>
+</div>
+
+{{-- PRE-MEDICATIONS --}}
+@php $preDrugs = $order->orderDrugs->where('category', 'pre_medication')->where('is_included', true)->values(); @endphp
+@if($preDrugs->count() > 0)
+<div class="outer-box">
+    <div class="section-header">Premedication (given 30 min before chemotherapy)</div>
+    <div style="padding:6px;">
+        <table class="drug-table" style="width:100%;">
+            <thead>
+                <tr>
+                    <th style="width:4%;">#</th>
+                    <th style="width:30%;">Drug</th>
+                    <th style="width:14%;">Dose</th>
+                    <th style="width:14%;">Frequency</th>
+                    <th style="width:20%;">Route</th>
+                    <th style="width:18%;">Duration / Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($preDrugs as $i => $od)
+                <tr>
+                    <td>{{ $i + 1 }}.</td>
+                    <td><strong>{{ $od->drug->name }}</strong></td>
+                    <td><strong>{{ number_format($od->final_dose, 2) }}</strong> {{ $od->drug->unit }}</td>
+                    <td>{{ $od->protocolDrug->frequency ?? '—' }}</td>
+                    <td>{{ $od->protocolDrug->route ?? '—' }}</td>
+                    <td>{{ $od->protocolDrug->duration_days ? $od->protocolDrug->duration_days . ' day(s)' : ($od->protocolDrug->notes ?? '—') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+{{-- CHEMOTHERAPY --}}
+@php $chemoDrugs = $order->orderDrugs->where('category', 'chemotherapy')->where('is_included', true)->values(); @endphp
+@if($chemoDrugs->count() > 0)
+<div class="chemo-section">
+    <div class="chemo-header">Chemotherapy</div>
+    <div style="padding:6px;">
+        <table class="drug-table" style="width:100%;">
+            <thead>
+                <tr>
+                    <th style="width:22%;">Drug</th>
+                    <th style="width:12%;">mg/m² or Basis</th>
+                    <th style="width:8%;">Mod %</th>
+                    <th style="width:14%;">Final Dose</th>
+                    <th style="width:10%;">Route</th>
+                    <th style="width:16%;">Frequency / Day</th>
+                    <th style="width:18%;">Notes / Flags</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($chemoDrugs as $od)
+                @php
+                    $pd = $od->protocolDrug;
+                    $doseUnitLabel = match($pd->dose_type) {
+                        'bsa_based' => number_format($pd->dose_per_unit, 2) . ' mg/m²',
+                        'weight_based' => number_format($pd->dose_per_unit, 2) . ' mg/kg',
+                        'carboplatin_calvert' => 'AUC ' . $pd->target_auc,
+                        'fixed' => 'Fixed',
+                        default => '—',
+                    };
+                    $modDisplay = null;
+                    if ($od->calculated_dose > 0 && $od->final_dose != $od->calculated_dose) {
+                        $modDisplay = round(($od->final_dose / $od->calculated_dose) * 100) . '%';
+                    }
+                @endphp
+                <tr>
+                    <td>
+                        <strong>{{ $od->drug->name }}</strong>
+                        @if($od->cap_applied) <br><small style="color:#b45309;">(cap applied)</small> @endif
+                        @if($od->is_manually_overridden) <br><small style="color:#c2410c;">&#9998; Override{{ $od->override_reason ? ': '.$od->override_reason : '' }}</small> @endif
+                    </td>
+                    <td style="color:#1d4ed8; font-weight:bold;">{{ $doseUnitLabel }}</td>
+                    <td style="{{ $modDisplay && $modDisplay !== '100%' ? 'color:#c2410c; font-weight:bold;' : '' }}">
+                        {{ $modDisplay ?? '100%' }}
+                    </td>
+                    <td style="font-weight:bold; font-size:12px;">
+                        {{ number_format($od->final_dose, 2) }} {{ $od->drug->unit }}
+                        @if($od->protocolDrug->per_cycle_cap)
+                            <br><small style="color:#666;">Cap: {{ number_format($od->protocolDrug->per_cycle_cap,2) }} {{ $od->protocolDrug->per_cycle_cap_unit }}</small>
+                        @endif
+                        @if($od->protocolDrug->lifetime_cap)
+                            <br><small style="color:#dc2626;">Life cap: {{ number_format($od->protocolDrug->lifetime_cap,2) }} {{ $od->protocolDrug->lifetime_cap_unit }}</small>
+                        @endif
+                    </td>
+                    <td>{{ $pd->route ?? '—' }}</td>
+                    <td>{{ $pd->frequency ?? '—' }}
+                        @if($pd->duration_days) <br><small>{{ $pd->duration_days }} day(s)</small> @endif
+                    </td>
+                    <td style="font-size:10px; color:#555;">{{ $pd->notes ?? '' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+{{-- POST-MEDICATIONS --}}
+@php $postDrugs = $order->orderDrugs->where('category', 'post_medication')->where('is_included', true)->values(); @endphp
+@if($postDrugs->count() > 0)
+<div class="outer-box">
+    <div class="section-header">Post-Chemotherapy Medications</div>
+    <div style="padding:6px;">
+        <table class="drug-table" style="width:100%;">
+            <thead>
+                <tr>
+                    <th style="width:4%;">#</th>
+                    <th style="width:30%;">Drug</th>
+                    <th style="width:14%;">Dose</th>
+                    <th style="width:14%;">Frequency</th>
+                    <th style="width:20%;">Route</th>
+                    <th style="width:18%;">Duration / Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($postDrugs as $i => $od)
+                <tr>
+                    <td>{{ $i + 1 }}.</td>
+                    <td><strong>{{ $od->drug->name }}</strong></td>
+                    <td><strong>{{ number_format($od->final_dose, 2) }}</strong> {{ $od->drug->unit }}</td>
+                    <td>{{ $od->protocolDrug->frequency ?? '—' }}</td>
+                    <td>{{ $od->protocolDrug->route ?? '—' }}</td>
+                    <td>{{ $od->protocolDrug->duration_days ? $od->protocolDrug->duration_days . ' day(s)' : ($od->protocolDrug->notes ?? '—') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+{{-- EXCLUDED DRUGS NOTE --}}
+@php $excluded = $order->orderDrugs->where('is_included', false); @endphp
+@if($excluded->count() > 0)
+<div style="border:1px solid #ccc; padding:4px 8px; margin-bottom:6px; font-size:10px; color:#666;">
+    <strong>Excluded from this order:</strong> {{ $excluded->pluck('drug.name')->implode(', ') }}
+</div>
+@endif
+
+{{-- SIGNATURE BLOCK --}}
+<div class="outer-box">
+    <table style="width:100%; border-collapse:collapse;">
+        <tr>
+            <td style="border:1px solid #000; padding:10px 8px; width:33%; vertical-align:bottom;">
+                <div style="font-weight:bold; font-size:10px; text-transform:uppercase; margin-bottom:28px;">Consultant Stamp / Signature</div>
+                <div style="border-top:1px solid #000; padding-top:2px; display:flex; gap:20px; font-size:10px;">
+                    <span><strong>Date:</strong> {{ $order->ordered_at->format('d/m/Y') }}</span>
+                    <span><strong>Time:</strong> {{ $order->ordered_at->format('H:i') }}</span>
+                </div>
+                @if($order->consultant_name)
+                <div style="font-size:10px; margin-top:2px;">{{ $order->consultant_name }}</div>
+                @endif
+            </td>
+            <td style="border:1px solid #000; padding:10px 8px; width:33%; vertical-align:bottom; border-left:none;">
+                <div style="font-weight:bold; font-size:10px; text-transform:uppercase; margin-bottom:28px;">Pharmacist Stamp / Signature</div>
+                <div style="border-top:1px solid #000; padding-top:2px; display:flex; gap:20px; font-size:10px;">
+                    <span><strong>Date:</strong> ___________</span>
+                    <span><strong>Time:</strong> _______</span>
+                </div>
+                @if($order->pharmacist_name)
+                <div style="font-size:10px; margin-top:2px;">{{ $order->pharmacist_name }}</div>
+                @endif
+            </td>
+            <td style="border:1px solid #000; padding:10px 8px; width:34%; vertical-align:bottom; border-left:none;">
+                <div style="font-weight:bold; font-size:10px; text-transform:uppercase; margin-bottom:28px;">Noted By (Nurse) Stamp / Signature</div>
+                <div style="border-top:1px solid #000; padding-top:2px; display:flex; gap:20px; font-size:10px;">
+                    <span><strong>Date:</strong> ___________</span>
+                    <span><strong>Time:</strong> _______</span>
+                </div>
+                @if($order->nurse_name)
+                <div style="font-size:10px; margin-top:2px;">{{ $order->nurse_name }}</div>
+                @endif
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div style="text-align:center; font-size:9px; color:#666; margin-top:4px;">
+    Chemotherapy Protocol — Page 1 of 1 &nbsp;|&nbsp; {{ $order->order_number }} &nbsp;|&nbsp;
+    Printed: {{ now()->format('d/m/Y H:i') }} &nbsp;|&nbsp;
+    {{ env('HOSPITAL_NAME') }} &nbsp;|&nbsp; CONFIDENTIAL MEDICAL DOCUMENT
+</div>
+
 </body>
-
 </html>

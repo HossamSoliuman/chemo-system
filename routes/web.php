@@ -26,9 +26,12 @@ Route::post('orders/{order}/confirm', [OrderController::class, 'confirm'])->name
 Route::get('orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
 Route::resource('orders', OrderController::class);
 
+use App\Http\Controllers\Api\PatientQuickUpdateController;
+
 Route::prefix('api')->name('api.')->group(function () {
     Route::get('protocols', [ProtocolApiController::class, 'byDiagnosis'])->name('protocols.by_diagnosis');
     Route::get('patients/mrn/{mrn}', [PatientApiController::class, 'findByMrn'])->name('patients.by_mrn');
     Route::post('orders/calculate', [OrderCalculationApiController::class, 'calculate'])->name('orders.calculate');
     Route::get('patients/{patient}/cumulative-doses', [PatientApiController::class, 'cumulativeDoses'])->name('patients.cumulative_doses');
+    Route::patch('patients/{patient}/quick-update', [PatientQuickUpdateController::class, 'update'])->name('patients.quick_update');
 });
