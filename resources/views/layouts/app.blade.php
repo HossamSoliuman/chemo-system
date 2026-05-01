@@ -72,7 +72,7 @@
             <h1 class="text-lg font-semibold text-gray-700">@yield('title', 'Dashboard')</h1>
             <div class="flex items-center gap-3 text-sm text-gray-500">
                 <i class="fa-solid fa-circle text-green-500 text-xs"></i> System Online
-                <span>{{ now()->format('d M Y, H:i') }}</span>
+                <span>{{ now()->format('d M Y') }}</span>
             </div>
         </header>
 
