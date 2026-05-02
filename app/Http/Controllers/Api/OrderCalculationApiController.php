@@ -39,6 +39,7 @@ class OrderCalculationApiController extends Controller
                 'category'          => $pd->category,
                 'dose_type'         => $pd->dose_type,
                 'dose_per_unit'     => $pd->dose_per_unit,
+                'dose_label'        => $pd->dose_label,
                 'target_auc'        => $pd->target_auc,
                 'route'             => $pd->route,
                 'frequency'         => $pd->frequency,

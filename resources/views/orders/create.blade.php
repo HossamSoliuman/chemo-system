@@ -309,7 +309,9 @@
                             <td class="px-3 py-2 font-medium text-gray-800" x-text="drug.drug_name"></td>
                             <td class="px-3 py-2 text-blue-600 font-mono">
                                 <span x-show="drug.dose_type==='carboplatin_calvert'" x-text="'AUC '+drug.target_auc"></span>
-                                <span x-show="drug.dose_type!=='carboplatin_calvert' && drug.dose_type!=='fixed'" x-text="drug.dose_per_unit ? parseFloat(drug.dose_per_unit).toFixed(2)+' '+doseUnitLabel(drug.dose_type) : '—'"></span>
+                                <span x-show="drug.dose_type!=='carboplatin_calvert' && drug.dose_type!=='fixed'"
+                                    x-text="drug.dose_label || (drug.dose_per_unit ? parseFloat(drug.dose_per_unit).toFixed(2)+' '+doseUnitLabel(drug.dose_type) : '—')">
+                                </span>
                                 <span x-show="drug.dose_type==='fixed'">Fixed</span>
                             </td>
                             <td class="px-3 py-2 font-mono text-gray-500" x-text="parseFloat(drug.base_dose).toFixed(2)"></td>
@@ -574,6 +576,7 @@ function orderForm() {
                 ...d,
                 base_dose: d.calculated_dose,
                 final_dose: d.final_dose,
+                dose_label: d.dose_label || '',
                 modification_pct: 100,
                 is_included: true,
                 is_manually_overridden: false,

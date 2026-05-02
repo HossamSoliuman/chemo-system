@@ -10,7 +10,7 @@ class ProtocolDrug extends Model
 {
     protected $fillable = [
         'protocol_id', 'drug_id', 'category', 'dose_type',
-        'dose_per_unit', 'fixed_dose', 'target_auc',
+        'dose_per_unit', 'dose_label', 'fixed_dose', 'target_auc',
         'per_cycle_cap', 'per_cycle_cap_unit',
         'lifetime_cap', 'lifetime_cap_unit',
         'route', 'frequency', 'notes', 'sort_order', 'duration_days',

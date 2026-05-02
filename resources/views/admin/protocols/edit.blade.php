@@ -11,6 +11,7 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
         'category' => $pd->category,
         'dose_type' => $pd->dose_type,
         'dose_per_unit' => $pd->dose_per_unit,
+        'dose_label' => $pd->dose_label,
         'fixed_dose' => $pd->fixed_dose,
         'target_auc' => $pd->target_auc,
         'per_cycle_cap' => $pd->per_cycle_cap,
@@ -19,6 +20,7 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
         'lifetime_cap_unit' => $pd->lifetime_cap_unit,
         'route' => $pd->route,
         'frequency' => $pd->frequency,
+        'duration_days' => $pd->duration_days,
         'notes' => $pd->notes,
     ];
 })->values()->toArray();
@@ -118,6 +120,10 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
                                         <label class="block text-gray-500 mb-1">Dose per Unit</label>
                                         <input type="number" step="0.0001" x-model="drug.dose_per_unit" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
                                     </div>
+                                    <div x-show="drug.dose_type !== 'fixed' && drug.dose_type !== 'carboplatin_calvert'">
+                                        <label class="block text-gray-500 mb-1">Dose Label Override</label>
+                                        <input type="text" x-model="drug.dose_label" placeholder="e.g. 180 mg/m²" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                    </div>
                                     <div x-show="drug.dose_type === 'fixed'">
                                         <label class="block text-gray-500 mb-1">Fixed Dose</label>
                                         <input type="number" step="0.0001" x-model="drug.fixed_dose" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
@@ -180,6 +186,7 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
                                 <input type="hidden" :name="'drugs['+drug._key+'][category]'" :value="drug.category">
                                 <input type="hidden" :name="'drugs['+drug._key+'][dose_type]'" :value="drug.dose_type">
                                 <input type="hidden" :name="'drugs['+drug._key+'][dose_per_unit]'" :value="drug.dose_per_unit">
+                                <input type="hidden" :name="'drugs['+drug._key+'][dose_label]'" :value="drug.dose_label">
                                 <input type="hidden" :name="'drugs['+drug._key+'][fixed_dose]'" :value="drug.fixed_dose">
                                 <input type="hidden" :name="'drugs['+drug._key+'][target_auc]'" :value="drug.target_auc">
                                 <input type="hidden" :name="'drugs['+drug._key+'][per_cycle_cap]'" :value="drug.per_cycle_cap">
@@ -229,7 +236,7 @@ function protocolBuilder(existingDrugs = []) {
                 drug_id: this.newDrug.drug_id,
                 drug_label: d ? d.name + ' (' + d.unit + ')' : '',
                 category: this.newDrug.category,
-                dose_type: 'bsa_based', dose_per_unit: '', fixed_dose: '', target_auc: '',
+                dose_type: 'bsa_based', dose_per_unit: '', dose_label: '', fixed_dose: '', target_auc: '',
                 per_cycle_cap: '', per_cycle_cap_unit: '', lifetime_cap: '', lifetime_cap_unit: '',
                 route: 'IV', frequency: '', duration_days: '', notes: '',
             });

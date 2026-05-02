@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <circle cx="40" cy="40" r="38" fill="none" stroke="#006633" stroke-width="3"/>
+  <text x="40" y="28" text-anchor="middle" font-family="Arial" font-size="8" font-weight="bold" fill="#006633">وزارة</text>
+  <text x="40" y="40" text-anchor="middle" font-family="Arial" font-size="8" font-weight="bold" fill="#006633">الصحة</text>
+  <text x="40" y="54" text-anchor="middle" font-family="Arial" font-size="6" fill="#006633">Ministry</text>
+  <text x="40" y="63" text-anchor="middle" font-family="Arial" font-size="6" fill="#006633">of Health</text>
+</svg>

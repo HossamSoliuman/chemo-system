@@ -109,6 +109,10 @@
                                         <label class="block text-gray-500 mb-1">Dose per Unit</label>
                                         <input type="number" step="0.0001" x-model="drug.dose_per_unit" class="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
                                     </div>
+                                    <div x-show="drug.dose_type !== 'fixed' && drug.dose_type !== 'carboplatin_calvert'">
+                                        <label class="block text-gray-500 mb-1">Dose Label Override <span class="text-gray-400">(e.g. 180 mg/m²)</span></label>
+                                        <input type="text" x-model="drug.dose_label" placeholder="auto-generated if empty" class="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    </div>
                                     <div x-show="drug.dose_type === 'fixed'">
                                         <label class="block text-gray-500 mb-1">Fixed Dose</label>
                                         <input type="number" step="0.0001" x-model="drug.fixed_dose" class="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
@@ -172,6 +176,7 @@
                                 <input type="hidden" :name="'drugs['+drug._key+'][category]'" :value="drug.category">
                                 <input type="hidden" :name="'drugs['+drug._key+'][dose_type]'" :value="drug.dose_type">
                                 <input type="hidden" :name="'drugs['+drug._key+'][dose_per_unit]'" :value="drug.dose_per_unit">
+                                <input type="hidden" :name="'drugs['+drug._key+'][dose_label]'" :value="drug.dose_label">
                                 <input type="hidden" :name="'drugs['+drug._key+'][fixed_dose]'" :value="drug.fixed_dose">
                                 <input type="hidden" :name="'drugs['+drug._key+'][target_auc]'" :value="drug.target_auc">
                                 <input type="hidden" :name="'drugs['+drug._key+'][per_cycle_cap]'" :value="drug.per_cycle_cap">
@@ -225,6 +230,7 @@ function protocolBuilder(existingDrugs = []) {
                 category: this.newDrug.category,
                 dose_type: 'bsa_based',
                 dose_per_unit: '',
+                dose_label: '',
                 fixed_dose: '',
                 target_auc: '',
                 per_cycle_cap: '',

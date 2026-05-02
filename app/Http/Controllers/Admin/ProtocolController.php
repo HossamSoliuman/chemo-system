@@ -100,6 +100,7 @@ class ProtocolController extends Controller
                 'category'          => $drugData['category'] ?? 'chemotherapy',
                 'dose_type'         => $drugData['dose_type'] ?? 'fixed',
                 'dose_per_unit'     => $drugData['dose_per_unit'] ?? null,
+                'dose_label'        => $drugData['dose_label'] ?? null,
                 'fixed_dose'        => $drugData['fixed_dose'] ?? null,
                 'target_auc'        => $drugData['target_auc'] ?? null,
                 'per_cycle_cap'     => $drugData['per_cycle_cap'] ?? null,
