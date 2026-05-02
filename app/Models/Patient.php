@@ -8,20 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Patient extends Model
 {
     protected $fillable = [
-        'mrn',
-        'name',
-        'gender',
-        'date_of_birth',
-        'height_cm',
-        'weight_kg',
-        'serum_creatinine',
+        'mrn', 'name', 'gender', 'nationality', 'date_of_birth',
+        'height_cm', 'weight_kg', 'serum_creatinine',
+        'consultant_in_charge', 'pregnant', 'lactating',
+        'has_allergy', 'allergy_details',
+        'cancer_stage', 'ecog_status', 'chemo_setting',
     ];
 
     protected $casts = [
-        'date_of_birth' => 'date',
-        'height_cm' => 'decimal:1',
-        'weight_kg' => 'decimal:2',
+        'date_of_birth'  => 'date',
+        'height_cm'      => 'decimal:1',
+        'weight_kg'      => 'decimal:2',
         'serum_creatinine' => 'decimal:2',
+        'has_allergy'    => 'boolean',
     ];
 
     public function orders(): HasMany

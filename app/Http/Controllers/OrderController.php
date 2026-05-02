@@ -84,11 +84,9 @@ class OrderController extends Controller
             $isOverridden = false;
             $overrideReason = null;
 
-            if (
-                $submittedDrug && isset($submittedDrug['final_dose'])
+            if ($submittedDrug && isset($submittedDrug['final_dose'])
                 && (float) $submittedDrug['final_dose'] != $doseResult['final']
-                && (float) $submittedDrug['final_dose'] > 0
-            ) {
+                && (float) $submittedDrug['final_dose'] > 0) {
                 $finalDose = (float) $submittedDrug['final_dose'];
                 $isOverridden = true;
                 $overrideReason = $submittedDrug['override_reason'] ?? null;
@@ -99,14 +97,18 @@ class OrderController extends Controller
             }
 
             $orderDrugsData[] = [
-                'protocol_drug' => $pd,
-                'calculated' => $doseResult['calculated'],
-                'final' => $finalDose,
-                'modification_pct' => $perDrugModPct,
-                'cap_applied' => $doseResult['cap_applied'],
-                'is_included' => isset($submittedDrug['is_included']) ? (bool) $submittedDrug['is_included'] : true,
+                'protocol_drug'          => $pd,
+                'calculated'             => $doseResult['calculated'],
+                'final'                  => $finalDose,
+                'modification_pct'       => $perDrugModPct,
+                'cap_applied'            => $doseResult['cap_applied'],
+                'is_included'            => isset($submittedDrug['is_included']) ? (bool) $submittedDrug['is_included'] : true,
                 'is_manually_overridden' => $isOverridden,
-                'override_reason' => $overrideReason,
+                'override_reason'        => $overrideReason,
+                'physician_note'         => $submittedDrug['physician_note'] ?? null,
+                'physician_frequency'    => $submittedDrug['physician_frequency'] ?? null,
+                'physician_duration'     => $submittedDrug['physician_duration'] ?? null,
+                'physician_dose_unit'    => $submittedDrug['physician_dose_unit'] ?? null,
             ];
         }
 
@@ -154,15 +156,19 @@ class OrderController extends Controller
                 $pd = $item['protocol_drug'];
                 OrderDrug::create([
                     'order_id' => $order->id,
-                    'protocol_drug_id' => $pd->id,
-                    'drug_id' => $pd->drug_id,
-                    'category' => $pd->category,
-                    'calculated_dose' => $item['calculated'],
-                    'final_dose' => $item['final'],
-                    'is_included' => $item['is_included'],
+                    'protocol_drug_id'       => $pd->id,
+                    'drug_id'                => $pd->drug_id,
+                    'category'               => $pd->category,
+                    'calculated_dose'        => $item['calculated'],
+                    'final_dose'             => $item['final'],
+                    'is_included'            => $item['is_included'],
                     'is_manually_overridden' => $item['is_manually_overridden'],
-                    'override_reason' => $item['override_reason'],
-                    'cap_applied' => $item['cap_applied'],
+                    'override_reason'        => $item['override_reason'],
+                    'cap_applied'            => $item['cap_applied'],
+                    'physician_note'         => $item['physician_note'] ?? null,
+                    'physician_frequency'    => $item['physician_frequency'] ?? null,
+                    'physician_duration'     => $item['physician_duration'] ?? null,
+                    'physician_dose_unit'    => $item['physician_dose_unit'] ?? null,
                 ]);
             }
 

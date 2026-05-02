@@ -16,7 +16,7 @@ class PatientController extends Controller
             $q = $request->q;
             $query->where(function ($sq) use ($q) {
                 $sq->where('mrn', 'like', "%$q%")
-                    ->orWhere('name', 'like', "%$q%");
+                   ->orWhere('name', 'like', "%$q%");
             });
         }
 
@@ -66,7 +66,7 @@ class PatientController extends Controller
         $rules = $this->rules();
         $rules['mrn'] = 'required|string|max:50|unique:patients,mrn,' . $patient->id;
         $request->validate($rules);
-        $patient->update($request->only(array_keys($this->rules())));
+        $patient->update($request->only(array_keys($rules)));
         return redirect()->route('patients.show', $patient)->with('success', 'Patient updated successfully.');
     }
 
@@ -94,13 +94,22 @@ class PatientController extends Controller
     private function rules(): array
     {
         return [
-            'mrn' => 'required|string|max:50|unique:patients,mrn',
-            'name' => 'required|string|max:255',
-            'gender' => 'required|in:male,female',
-            'date_of_birth' => 'required|date|before:today',
-            'height_cm' => 'required|numeric|min:50|max:250',
-            'weight_kg' => 'required|numeric|min:1|max:500',
-            'serum_creatinine' => 'required|numeric|min:10|max:2000',
+            'mrn'                  => 'required|string|max:50|unique:patients,mrn',
+            'name'                 => 'required|string|max:255',
+            'gender'               => 'required|in:male,female',
+            'nationality'          => 'nullable|string|max:100',
+            'date_of_birth'        => 'required|date|before:today',
+            'height_cm'            => 'required|numeric|min:50|max:250',
+            'weight_kg'            => 'required|numeric|min:1|max:500',
+            'serum_creatinine'     => 'required|numeric|min:10|max:2000',
+            'consultant_in_charge' => 'nullable|string|max:255',
+            'pregnant'             => 'nullable|in:yes,no,na',
+            'lactating'            => 'nullable|in:yes,no,na',
+            'has_allergy'          => 'nullable|boolean',
+            'allergy_details'      => 'nullable|string|max:500',
+            'cancer_stage'         => 'nullable|string|max:20',
+            'ecog_status'          => 'nullable|string|max:5',
+            'chemo_setting'        => 'nullable|string|max:50',
         ];
     }
 }

@@ -11,6 +11,7 @@ class OrderDrug extends Model
         'order_id', 'protocol_drug_id', 'drug_id', 'category',
         'calculated_dose', 'final_dose', 'is_included',
         'is_manually_overridden', 'override_reason', 'cap_applied',
+        'physician_note', 'physician_frequency', 'physician_duration', 'physician_dose_unit',
     ];
 
     protected $casts = [

@@ -18,10 +18,37 @@
             <dl class="space-y-2 text-sm">
                 <div class="flex justify-between"><dt class="text-gray-500">Age</dt><dd class="font-medium">{{ $patient->age }} years</dd></div>
                 <div class="flex justify-between"><dt class="text-gray-500">Gender</dt><dd class="font-medium capitalize">{{ $patient->gender }}</dd></div>
+                @if($patient->nationality)
+                <div class="flex justify-between"><dt class="text-gray-500">Nationality</dt><dd class="font-medium">{{ $patient->nationality }}</dd></div>
+                @endif
                 <div class="flex justify-between"><dt class="text-gray-500">DOB</dt><dd class="font-medium">{{ $patient->date_of_birth->format('d M Y') }}</dd></div>
                 <div class="flex justify-between"><dt class="text-gray-500">Height</dt><dd class="font-medium">{{ $patient->height_cm }} cm</dd></div>
                 <div class="flex justify-between"><dt class="text-gray-500">Weight</dt><dd class="font-medium">{{ $patient->weight_kg }} kg</dd></div>
                 <div class="flex justify-between"><dt class="text-gray-500">Creatinine</dt><dd class="font-medium">{{ $patient->serum_creatinine }} µmol/L</dd></div>
+                @if($patient->cancer_stage)
+                <div class="flex justify-between"><dt class="text-gray-500">Stage</dt><dd class="font-medium">Stage {{ $patient->cancer_stage }}</dd></div>
+                @endif
+                @if($patient->ecog_status !== null && $patient->ecog_status !== '')
+                <div class="flex justify-between"><dt class="text-gray-500">ECOG</dt><dd class="font-medium">{{ $patient->ecog_status }}</dd></div>
+                @endif
+                @if($patient->chemo_setting)
+                <div class="flex justify-between"><dt class="text-gray-500">Setting</dt><dd class="font-medium">{{ $patient->chemo_setting }}</dd></div>
+                @endif
+                @if($patient->consultant_in_charge)
+                <div class="flex justify-between"><dt class="text-gray-500">Consultant</dt><dd class="font-medium text-xs">{{ $patient->consultant_in_charge }}</dd></div>
+                @endif
+                <div class="flex justify-between"><dt class="text-gray-500">Pregnant</dt><dd class="font-medium capitalize">{{ $patient->pregnant ?? 'N/A' }}</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">Lactating</dt><dd class="font-medium capitalize">{{ $patient->lactating ?? 'N/A' }}</dd></div>
+                <div class="flex justify-between items-start"><dt class="text-gray-500">Allergy</dt>
+                    <dd class="font-medium text-right">
+                        @if($patient->has_allergy)
+                            <span class="text-red-600">Yes</span>
+                            @if($patient->allergy_details) <div class="text-xs text-red-500">{{ $patient->allergy_details }}</div> @endif
+                        @else
+                            <span class="text-green-600">No</span>
+                        @endif
+                    </dd>
+                </div>
             </dl>
             <div class="mt-4 flex gap-2">
                 <a href="{{ route('patients.edit', $patient) }}" class="flex-1 text-center text-sm border border-gray-200 rounded-lg py-1.5 text-gray-600 hover:bg-gray-50 transition"><i class="fa-solid fa-pen-to-square mr-1"></i> Edit</a>
