@@ -167,11 +167,9 @@
             <tr>
                 {{-- Left: hospital branding --}}
                 <td style="width:36%; border-right:1px solid #000; padding:8px 10px; vertical-align:middle;">
-                    {{-- Logo placeholder: replace <img> src if you have the actual logo --}}
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                        <div
-                            style="width:40px; height:40px; border:1px solid #aaa; display:flex; align-items:center; justify-content:center; font-size:8px; color:#888;">
-                            LOGO</div>
+                        <img src="/health-saudi-logo.jpg" alt="Ministry of Health Logo"
+                            style="width:40px; height:40px; object-fit:contain;">
                         <div>
                             <div style="font-size:9px; font-weight:bold; line-height:1.4;">Kingdom Of Saudi Arabia</div>
                             <div style="font-size:9px; line-height:1.4;">Ministry Of Health</div>
@@ -183,7 +181,6 @@
                     <div style="font-size:12px; font-family:'Arial'; direction:rtl; text-align:right; margin-top:2px;">
                         بروتوكول العلاج الكيميائي</div>
                 </td>
-
                 {{-- Right: patient fields --}}
                 <td style="padding:6px 10px; vertical-align:top;">
                     <table style="width:100%; border-collapse:collapse;">
