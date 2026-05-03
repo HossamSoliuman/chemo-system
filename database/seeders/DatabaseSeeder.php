@@ -6,17 +6,29 @@ use App\Models\Diagnosis;
 use App\Models\Drug;
 use App\Models\Protocol;
 use App\Models\ProtocolDrug;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->seedUsers();
         $drugs = $this->seedDrugs();
         $diagnoses = $this->seedDiagnoses();
         $protocols = $this->seedProtocols($diagnoses, $drugs);
         $patients = $this->seedPatients();
         $this->seedOrders($patients, $protocols, $drugs);
+    }
+
+    private function seedUsers(): void
+    {
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@oncochemo.local',
+            'password' => Hash::make('password123'),
+        ]);
     }
 
     private function seedDrugs(): array
@@ -319,13 +331,11 @@ class DatabaseSeeder extends Seeder
                     ]);
 
                     if ($status !== 'draft') {
-                        \App\Models\PatientCumulativeDose::updateOrCreate(
+                        $cumulative = \App\Models\PatientCumulativeDose::firstOrCreate(
                             ['patient_id' => $patient->id, 'drug_id' => $pd->drug_id],
-                            [
-                                'total_dose' => \Illuminate\Support\Facades\DB::raw('COALESCE(total_dose, 0) + ' . $dose['final']),
-                                'updated_at' => $orderedAt,
-                            ]
+                            ['total_dose' => 0]
                         );
+                        $cumulative->increment('total_dose', $dose['final']);
                     }
                 }
             }

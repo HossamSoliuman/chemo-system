@@ -59,6 +59,9 @@
             <a href="{{ route('admin.drugs.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition {{ request()->routeIs('admin.drugs.*') ? 'bg-blue-700' : '' }}">
                 <i class="fa-solid fa-capsules w-5 text-center"></i> Drug Master
             </a>
+            <a href="{{ route('admin.users.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition {{ request()->routeIs('admin.users.*') ? 'bg-blue-700' : '' }}">
+                <i class="fa-solid fa-users w-5 text-center"></i> Users
+            </a>
         </nav>
 
         <div class="px-4 py-3 border-t border-blue-800 text-xs text-blue-400">
@@ -70,9 +73,31 @@
     <div class="flex-1 flex flex-col overflow-hidden">
         <header class="no-print bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
             <h1 class="text-lg font-semibold text-gray-700">@yield('title', 'Dashboard')</h1>
-            <div class="flex items-center gap-3 text-sm text-gray-500">
-                <i class="fa-solid fa-circle text-green-500 text-xs"></i> System Online
-                <span>{{ now()->format('d M Y') }}</span>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-3 text-sm text-gray-500">
+                    <i class="fa-solid fa-circle text-green-500 text-xs"></i> System Online
+                    <span>{{ now()->format('d M Y') }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm" x-data="{ open: false }">
+                    <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
+                        {{ substr(auth()->user()->name, 0, 1) }}
+                    </div>
+                    <button @click="open = !open" class="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1">
+                        {{ auth()->user()->name }}
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </button>
+                    <div @click.away="open = false" x-show="open" class="absolute right-6 top-16 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                        <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-200">
+                            <i class="fa-solid fa-users mr-2"></i> Manage Users
+                        </a>
+                        <form method="POST" action="{{ route('logout') }}" class="block">
+                            @csrf
+                            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
+                                <i class="fa-solid fa-sign-out-alt mr-2"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </header>
 
