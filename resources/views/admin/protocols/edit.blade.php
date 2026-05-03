@@ -5,23 +5,23 @@
 @php
 $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
     return [
-        '_key' => $i,
-        'drug_id' => $pd->drug_id,
-        'drug_label' => $pd->drug->name . ' (' . $pd->drug->unit . ')',
-        'category' => $pd->category,
-        'dose_type' => $pd->dose_type,
-        'dose_per_unit' => $pd->dose_per_unit,
-        'dose_label' => $pd->dose_label,
-        'fixed_dose' => $pd->fixed_dose,
-        'target_auc' => $pd->target_auc,
-        'per_cycle_cap' => $pd->per_cycle_cap,
-        'per_cycle_cap_unit' => $pd->per_cycle_cap_unit,
-        'lifetime_cap' => $pd->lifetime_cap,
+        '_key'              => $i,
+        'drug_id'           => $pd->drug_id,
+        'drug_label'        => $pd->drug->name . ' (' . $pd->drug->unit . ')',
+        'category'          => $pd->category,
+        'dose_type'         => $pd->dose_type,
+        'dose_per_unit'     => $pd->dose_per_unit,
+        'dose_label'        => $pd->dose_label,
+        'fixed_dose'        => $pd->fixed_dose,
+        'target_auc'        => $pd->target_auc,
+        'per_cycle_cap'     => $pd->per_cycle_cap,
+        'per_cycle_cap_unit'=> $pd->per_cycle_cap_unit,
+        'lifetime_cap'      => $pd->lifetime_cap,
         'lifetime_cap_unit' => $pd->lifetime_cap_unit,
-        'route' => $pd->route,
-        'frequency' => $pd->frequency,
-        'duration_days' => $pd->duration_days,
-        'notes' => $pd->notes,
+        'route'             => $pd->route,
+        'frequency'         => $pd->frequency,
+        'duration_days'     => $pd->duration_days,
+        'notes'             => $pd->notes,
     ];
 })->values()->toArray();
 @endphp
@@ -89,114 +89,150 @@ $existingDrugs = $protocol->protocolDrugs->map(function($pd, $i) {
 
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+
+                    {{-- Tab buttons --}}
                     <div class="border-b border-gray-100 flex">
-                        <button type="button" @click="tab='pre_medication'" :class="tab==='pre_medication'?'border-b-2 border-blue-600 text-blue-600':'text-gray-500'" class="px-5 py-3 text-sm font-medium">Pre-Meds <span class="ml-1 text-xs bg-gray-100 rounded-full px-2 py-0.5" x-text="drugsByCategory('pre_medication').length"></span></button>
-                        <button type="button" @click="tab='chemotherapy'" :class="tab==='chemotherapy'?'border-b-2 border-blue-600 text-blue-600':'text-gray-500'" class="px-5 py-3 text-sm font-medium">Chemo <span class="ml-1 text-xs bg-gray-100 rounded-full px-2 py-0.5" x-text="drugsByCategory('chemotherapy').length"></span></button>
-                        <button type="button" @click="tab='post_medication'" :class="tab==='post_medication'?'border-b-2 border-blue-600 text-blue-600':'text-gray-500'" class="px-5 py-3 text-sm font-medium">Post-Meds <span class="ml-1 text-xs bg-gray-100 rounded-full px-2 py-0.5" x-text="drugsByCategory('post_medication').length"></span></button>
+                        <button type="button" @click="tab='pre_medication'"
+                            :class="tab==='pre_medication'?'border-b-2 border-blue-600 text-blue-600':'text-gray-500'"
+                            class="px-5 py-3 text-sm font-medium">
+                            Pre-Meds
+                            <span class="ml-1 text-xs bg-gray-100 rounded-full px-2 py-0.5" x-text="countByCategory('pre_medication')"></span>
+                        </button>
+                        <button type="button" @click="tab='chemotherapy'"
+                            :class="tab==='chemotherapy'?'border-b-2 border-blue-600 text-blue-600':'text-gray-500'"
+                            class="px-5 py-3 text-sm font-medium">
+                            Chemo
+                            <span class="ml-1 text-xs bg-gray-100 rounded-full px-2 py-0.5" x-text="countByCategory('chemotherapy')"></span>
+                        </button>
+                        <button type="button" @click="tab='post_medication'"
+                            :class="tab==='post_medication'?'border-b-2 border-blue-600 text-blue-600':'text-gray-500'"
+                            class="px-5 py-3 text-sm font-medium">
+                            Post-Meds
+                            <span class="ml-1 text-xs bg-gray-100 rounded-full px-2 py-0.5" x-text="countByCategory('post_medication')"></span>
+                        </button>
                     </div>
 
                     <div class="p-4">
-                        <template x-if="drugsByCategory(tab).length === 0">
-                            <div class="text-center py-10 text-gray-400 text-sm"><i class="fa-solid fa-capsules text-3xl mb-3 block opacity-30"></i>No drugs in this category.</div>
-                        </template>
-                        <template x-for="drug in drugsByCategory(tab)" :key="drug._key">
-                            <div class="border border-gray-200 rounded-lg p-4 mb-3 bg-gray-50">
-                                <div class="flex items-center justify-between mb-3">
-                                    <span class="font-medium text-sm text-gray-800" x-text="drug.drug_label"></span>
-                                    <button type="button" @click="removeDrug(drug._key)" class="text-red-500 hover:text-red-700 text-xs"><i class="fa-solid fa-xmark"></i> Remove</button>
+                        {{-- Empty state per active tab --}}
+                        <div x-show="countByCategory(tab) === 0" class="text-center py-10 text-gray-400 text-sm">
+                            <i class="fa-solid fa-capsules text-3xl mb-3 block opacity-30"></i>
+                            No drugs in this category.
+                        </div>
+
+                        {{--
+                            KEY FIX: iterate ALL drugs, not filtered by tab.
+                            The visible card is shown/hidden via x-show based on tab.
+                            Hidden inputs are ALWAYS in the DOM — all categories submit correctly.
+                        --}}
+                        <template x-for="drug in drugs" :key="drug._key">
+                            <div>
+                                {{-- Visible card — only shown when tab matches --}}
+                                <div x-show="drug.category === tab"
+                                     class="border border-gray-200 rounded-lg p-4 mb-3 bg-gray-50">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="font-medium text-sm text-gray-800" x-text="drug.drug_label"></span>
+                                        <button type="button" @click="removeDrug(drug._key)" class="text-red-500 hover:text-red-700 text-xs">
+                                            <i class="fa-solid fa-xmark"></i> Remove
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 text-xs">
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Dose Type</label>
+                                            <select x-model="drug.dose_type" class="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                <option value="bsa_based">BSA-based (mg/m²)</option>
+                                                <option value="weight_based">Weight-based (mg/kg)</option>
+                                                <option value="crcl_based">CrCl-based</option>
+                                                <option value="carboplatin_calvert">Carboplatin Calvert (AUC)</option>
+                                                <option value="fixed">Fixed dose</option>
+                                            </select>
+                                        </div>
+                                        <div x-show="drug.dose_type !== 'fixed' && drug.dose_type !== 'carboplatin_calvert'">
+                                            <label class="block text-gray-500 mb-1">Dose per Unit</label>
+                                            <input type="number" step="0.0001" x-model="drug.dose_per_unit" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div x-show="drug.dose_type !== 'fixed' && drug.dose_type !== 'carboplatin_calvert'">
+                                            <label class="block text-gray-500 mb-1">Dose Label <span class="text-gray-400">(e.g. 180 mg/m²)</span></label>
+                                            <input type="text" x-model="drug.dose_label" placeholder="auto-generated if empty" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div x-show="drug.dose_type === 'fixed'">
+                                            <label class="block text-gray-500 mb-1">Fixed Dose</label>
+                                            <input type="number" step="0.0001" x-model="drug.fixed_dose" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div x-show="drug.dose_type === 'carboplatin_calvert'">
+                                            <label class="block text-gray-500 mb-1">Target AUC</label>
+                                            <input type="number" step="0.01" x-model="drug.target_auc" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Route</label>
+                                            <select x-model="drug.route" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                                <option value="">Select route</option>
+                                                <option value="Oral">Oral</option>
+                                                <option value="Sublingual">Sublingual</option>
+                                                <option value="Continuous IV infusion">Continuous IV infusion</option>
+                                                <option value="IV bolus">Intravenous bolus</option>
+                                                <option value="IV push">Intravenous push</option>
+                                                <option value="SC">Subcutaneous</option>
+                                                <option value="IM">Intramuscular</option>
+                                                <option value="Intrathecal">Intrathecal</option>
+                                                <option value="Intrapleural">Intrapleural</option>
+                                                <option value="Intravesical">Intravesical</option>
+                                                <option value="Intraperitoneal">Intraperitoneal</option>
+                                                <option value="Intraarterial">Intraarterial</option>
+                                                <option value="Topical">Topical</option>
+                                                <option value="Intraventricular">Intraventricular</option>
+                                                <option value="Intravitreal">Intravitreal</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Frequency</label>
+                                            <input type="text" x-model="drug.frequency" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Duration (days)</label>
+                                            <input type="text" x-model="drug.duration_days" placeholder="e.g. 5" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Per-Cycle Cap</label>
+                                            <input type="number" step="0.0001" x-model="drug.per_cycle_cap" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Cap Unit</label>
+                                            <input type="text" x-model="drug.per_cycle_cap_unit" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Lifetime Cap</label>
+                                            <input type="number" step="0.0001" x-model="drug.lifetime_cap" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-500 mb-1">Lifetime Cap Unit</label>
+                                            <input type="text" x-model="drug.lifetime_cap_unit" placeholder="mg/m²" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                        <div class="col-span-2">
+                                            <label class="block text-gray-500 mb-1">
+                                                Administration Notes
+                                                <span class="text-gray-400">(e.g. IV in 500ml D5W over 90 min)</span>
+                                            </label>
+                                            <input type="text" x-model="drug.notes" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Dose Type</label>
-                                        <select x-model="drug.dose_type" class="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                            <option value="bsa_based">BSA-based</option>
-                                            <option value="weight_based">Weight-based</option>
-                                            <option value="crcl_based">CrCl-based</option>
-                                            <option value="carboplatin_calvert">Carboplatin Calvert</option>
-                                            <option value="fixed">Fixed</option>
-                                        </select>
-                                    </div>
-                                    <div x-show="drug.dose_type !== 'fixed' && drug.dose_type !== 'carboplatin_calvert'">
-                                        <label class="block text-gray-500 mb-1">Dose per Unit</label>
-                                        <input type="number" step="0.0001" x-model="drug.dose_per_unit" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div x-show="drug.dose_type !== 'fixed' && drug.dose_type !== 'carboplatin_calvert'">
-                                        <label class="block text-gray-500 mb-1">Dose Label Override</label>
-                                        <input type="text" x-model="drug.dose_label" placeholder="e.g. 180 mg/m²" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div x-show="drug.dose_type === 'fixed'">
-                                        <label class="block text-gray-500 mb-1">Fixed Dose</label>
-                                        <input type="number" step="0.0001" x-model="drug.fixed_dose" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div x-show="drug.dose_type === 'carboplatin_calvert'">
-                                        <label class="block text-gray-500 mb-1">Target AUC</label>
-                                        <input type="number" step="0.01" x-model="drug.target_auc" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Route</label>
-                                        <select x-model="drug.route" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                            <option value="">Select route</option>
-                                            <option value="Oral">Oral</option>
-                                            <option value="Sublingual">Sublingual</option>
-                                            <option value="Continuous IV infusion">Continuous IV infusion</option>
-                                            <option value="IV bolus">Intravenous bolus</option>
-                                            <option value="IV push">Intravenous push</option>
-                                            <option value="SC">Subcutaneous</option>
-                                            <option value="IM">Intramuscular</option>
-                                            <option value="Intrathecal">Intrathecal</option>
-                                            <option value="Intrapleural">Intrapleural</option>
-                                            <option value="Intravesical">Intravesical</option>
-                                            <option value="Intraperitoneal">Intraperitoneal</option>
-                                            <option value="Intraarterial">Intraarterial</option>
-                                            <option value="Topical">Topical</option>
-                                            <option value="Intraventricular">Intraventricular</option>
-                                            <option value="Intravitreal">Intravitreal</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Frequency</label>
-                                        <input type="text" x-model="drug.frequency" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Per-Cycle Cap</label>
-                                        <input type="number" step="0.0001" x-model="drug.per_cycle_cap" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Cap Unit</label>
-                                        <input type="text" x-model="drug.per_cycle_cap_unit" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Lifetime Cap</label>
-                                        <input type="number" step="0.0001" x-model="drug.lifetime_cap" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Lifetime Cap Unit</label>
-                                        <input type="text" x-model="drug.lifetime_cap_unit" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div class="col-span-2">
-                                        <label class="block text-gray-500 mb-1">Notes</label>
-                                        <input type="text" x-model="drug.notes" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-gray-500 mb-1">Duration (days)</label>
-                                        <input type="text" x-model="drug.duration_days" placeholder="e.g. 5" class="w-full border border-gray-300 rounded px-2 py-1 text-xs">
-                                    </div>
-                                </div>
-                                <input type="hidden" :name="'drugs['+drug._key+'][drug_id]'" :value="drug.drug_id">
-                                <input type="hidden" :name="'drugs['+drug._key+'][category]'" :value="drug.category">
-                                <input type="hidden" :name="'drugs['+drug._key+'][dose_type]'" :value="drug.dose_type">
-                                <input type="hidden" :name="'drugs['+drug._key+'][dose_per_unit]'" :value="drug.dose_per_unit">
-                                <input type="hidden" :name="'drugs['+drug._key+'][dose_label]'" :value="drug.dose_label">
-                                <input type="hidden" :name="'drugs['+drug._key+'][fixed_dose]'" :value="drug.fixed_dose">
-                                <input type="hidden" :name="'drugs['+drug._key+'][target_auc]'" :value="drug.target_auc">
-                                <input type="hidden" :name="'drugs['+drug._key+'][per_cycle_cap]'" :value="drug.per_cycle_cap">
+
+                                {{-- Hidden inputs — ALWAYS rendered regardless of active tab --}}
+                                <input type="hidden" :name="'drugs['+drug._key+'][drug_id]'"            :value="drug.drug_id">
+                                <input type="hidden" :name="'drugs['+drug._key+'][category]'"           :value="drug.category">
+                                <input type="hidden" :name="'drugs['+drug._key+'][dose_type]'"          :value="drug.dose_type">
+                                <input type="hidden" :name="'drugs['+drug._key+'][dose_per_unit]'"      :value="drug.dose_per_unit">
+                                <input type="hidden" :name="'drugs['+drug._key+'][dose_label]'"         :value="drug.dose_label">
+                                <input type="hidden" :name="'drugs['+drug._key+'][fixed_dose]'"         :value="drug.fixed_dose">
+                                <input type="hidden" :name="'drugs['+drug._key+'][target_auc]'"         :value="drug.target_auc">
+                                <input type="hidden" :name="'drugs['+drug._key+'][per_cycle_cap]'"      :value="drug.per_cycle_cap">
                                 <input type="hidden" :name="'drugs['+drug._key+'][per_cycle_cap_unit]'" :value="drug.per_cycle_cap_unit">
-                                <input type="hidden" :name="'drugs['+drug._key+'][lifetime_cap]'" :value="drug.lifetime_cap">
-                                <input type="hidden" :name="'drugs['+drug._key+'][lifetime_cap_unit]'" :value="drug.lifetime_cap_unit">
-                                <input type="hidden" :name="'drugs['+drug._key+'][route]'" :value="drug.route">
-                                <input type="hidden" :name="'drugs['+drug._key+'][frequency]'" :value="drug.frequency">
-                                <input type="hidden" :name="'drugs['+drug._key+'][duration_days]'" :value="drug.duration_days">
-                                <input type="hidden" :name="'drugs['+drug._key+'][notes]'" :value="drug.notes">
+                                <input type="hidden" :name="'drugs['+drug._key+'][lifetime_cap]'"       :value="drug.lifetime_cap">
+                                <input type="hidden" :name="'drugs['+drug._key+'][lifetime_cap_unit]'"  :value="drug.lifetime_cap_unit">
+                                <input type="hidden" :name="'drugs['+drug._key+'][route]'"              :value="drug.route">
+                                <input type="hidden" :name="'drugs['+drug._key+'][frequency]'"          :value="drug.frequency">
+                                <input type="hidden" :name="'drugs['+drug._key+'][duration_days]'"      :value="drug.duration_days">
+                                <input type="hidden" :name="'drugs['+drug._key+'][notes]'"              :value="drug.notes">
                             </div>
                         </template>
                     </div>
@@ -226,7 +262,9 @@ function protocolBuilder(existingDrugs = []) {
 
         init() {},
 
-        drugsByCategory(cat) { return this.drugs.filter(d => d.category === cat); },
+        countByCategory(cat) {
+            return this.drugs.filter(d => d.category === cat).length;
+        },
 
         addDrug() {
             if (!this.newDrug.drug_id) return;
@@ -236,15 +274,27 @@ function protocolBuilder(existingDrugs = []) {
                 drug_id: this.newDrug.drug_id,
                 drug_label: d ? d.name + ' (' + d.unit + ')' : '',
                 category: this.newDrug.category,
-                dose_type: 'bsa_based', dose_per_unit: '', dose_label: '', fixed_dose: '', target_auc: '',
-                per_cycle_cap: '', per_cycle_cap_unit: '', lifetime_cap: '', lifetime_cap_unit: '',
-                route: 'IV', frequency: '', duration_days: '', notes: '',
+                dose_type: 'bsa_based',
+                dose_per_unit: '',
+                dose_label: '',
+                fixed_dose: '',
+                target_auc: '',
+                per_cycle_cap: '',
+                per_cycle_cap_unit: '',
+                lifetime_cap: '',
+                lifetime_cap_unit: '',
+                route: '',
+                frequency: '',
+                duration_days: '',
+                notes: '',
             });
             this.tab = this.newDrug.category;
             this.newDrug.drug_id = '';
         },
 
-        removeDrug(key) { this.drugs = this.drugs.filter(d => d._key !== key); },
+        removeDrug(key) {
+            this.drugs = this.drugs.filter(d => d._key !== key);
+        },
     };
 }
 </script>

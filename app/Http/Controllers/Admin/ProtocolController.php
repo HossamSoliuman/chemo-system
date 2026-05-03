@@ -104,7 +104,7 @@ class ProtocolController extends Controller
                 'fixed_dose'        => $drugData['fixed_dose'] ?? null,
                 'target_auc'        => $drugData['target_auc'] ?? null,
                 'per_cycle_cap'     => $drugData['per_cycle_cap'] ?? null,
-                'per_cycle_cap_unit'=> $drugData['per_cycle_cap_unit'] ?? null,
+                'per_cycle_cap_unit' => $drugData['per_cycle_cap_unit'] ?? null,
                 'lifetime_cap'      => $drugData['lifetime_cap'] ?? null,
                 'lifetime_cap_unit' => $drugData['lifetime_cap_unit'] ?? null,
                 'route'             => $drugData['route'] ?? null,
