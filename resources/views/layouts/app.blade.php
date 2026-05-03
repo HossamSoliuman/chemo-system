@@ -65,7 +65,7 @@
         </nav>
 
         <div class="px-4 py-3 border-t border-blue-800 text-xs text-blue-400">
-            OncoChemo v1.0 &mdash; Offline
+            OncoChemo &mdash; Offline
         </div>
     </aside>
 

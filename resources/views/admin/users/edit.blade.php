@@ -47,6 +47,20 @@
                 <h3 class="text-sm font-medium text-gray-700 mb-4">Change Password (Optional)</h3>
 
                 <div>
+                    <label for="old_password" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                    <input
+                        type="password"
+                        id="old_password"
+                        name="old_password"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition @error('old_password') border-red-500 @enderror"
+                        placeholder="Enter current password to change it"
+                    >
+                    @error('old_password')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mt-4">
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
                     <input
                         type="password"
@@ -61,7 +75,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
                     <input
                         type="password"
                         id="password_confirmation"

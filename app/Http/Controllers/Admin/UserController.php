@@ -44,15 +44,20 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
+            'old_password' => 'nullable|required_with:password',
             'password' => 'nullable|min:8|confirmed',
         ]);
 
         if ($validated['password']) {
+            if (!Hash::check($validated['old_password'], $user->password)) {
+                return back()->withErrors(['old_password' => 'The old password is incorrect.'])->onlyInput('old_password');
+            }
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
         }
 
+        unset($validated['old_password']);
         $user->update($validated);
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
