@@ -267,10 +267,15 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <label class="block text-xs text-gray-500 mb-1">Note (visible on printed form)</label>
-                        <textarea x-model="drug.physician_note" :placeholder="drug.notes || 'Add clinical note...'"
+                        <label class="block text-xs text-gray-500 mb-1">
+                            <i class="fa-solid fa-notes-medical mr-1 text-green-500"></i>
+                            Note / Instructions <span class="text-gray-400">(pre-filled from protocol, editable)</span>
+                        </label>
+                        <textarea x-model="drug.physician_note"
+                            placeholder="Add administration note..."
                             @input="checkModified()"
-                            rows="2" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                            rows="2" class="w-full border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                            :class="drug.physician_note ? 'border-blue-300 bg-blue-50' : 'border-gray-300'"></textarea>
                     </div>
                 </div>
             </template>
@@ -331,10 +336,13 @@
                                 </template>
                             </td>
                             <td class="px-3 py-2">
-                                <input type="number" step="0.01" x-model="drug.final_dose"
-                                    @change="drug.is_manually_overridden=true; drug.modification_pct=100; checkModified()"
-                                    class="w-20 border rounded px-1.5 py-0.5 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                    :class="drug.is_manually_overridden?'border-orange-400 bg-orange-50':(drug.modification_pct!=100?'border-yellow-300 bg-yellow-50':'border-gray-300')">
+                                <div class="flex flex-col gap-0.5">
+                                    <input type="number" step="0.01" x-model="drug.final_dose"
+                                        @change="drug.is_manually_overridden=true; drug.modification_pct=100; checkModified()"
+                                        class="w-24 border rounded px-1.5 py-1 font-mono text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        :class="drug.is_manually_overridden?'border-orange-400 bg-orange-50':(drug.modification_pct!=100?'border-yellow-300 bg-yellow-50':'border-blue-300 bg-blue-50')">
+                                    <span class="text-xs text-gray-400 text-center" x-text="drug.drug_unit"></span>
+                                </div>
                             </td>
                             <td class="px-3 py-2 text-gray-500" x-text="drug.route || '—'"></td>
                             <td class="px-3 py-2">
@@ -359,15 +367,27 @@
                                 </div>
                             </td>
                         </tr>
-                        {{-- Note row for chemo --}}
+                        {{-- Admin instructions / Note row — always visible for chemo --}}
                         <tr :class="!drug.is_included ? 'opacity-50' : ''">
-                            <td colspan="10" class="px-3 pb-2 pt-0">
-                                <textarea x-model="drug.physician_note"
-                                    :placeholder="(drug.notes || '') + (drug.notes ? '' : 'Add note for this drug (visible on print)...')"
-                                    @input="checkModified()"
-                                    rows="1"
-                                    class="w-full border border-gray-200 bg-gray-50 rounded px-2 py-1 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
-                                    :class="drug.physician_note ? 'border-blue-200 bg-blue-50' : ''"></textarea>
+                            <td colspan="10" class="px-3 pb-3 pt-1">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-xs text-gray-400 mt-1.5 whitespace-nowrap">
+                                        <i class="fa-solid fa-notes-medical mr-1"></i>Note:
+                                    </span>
+                                    <div class="flex-1">
+                                        <textarea x-model="drug.physician_note"
+                                            x-init="if (!drug.physician_note && drug.notes) drug.physician_note = drug.notes"
+                                            @input="checkModified()"
+                                            rows="2"
+                                            placeholder="Administration instructions (e.g. IV in 500ml D5W over 90 minutes)..."
+                                            class="w-full border rounded px-2 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+                                            :class="drug.physician_note ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-gray-50'"></textarea>
+                                        <p x-show="drug.notes && !drug.physician_note" class="text-xs text-blue-500 mt-0.5">
+                                            <i class="fa-solid fa-circle-info mr-1"></i>
+                                            Protocol default: <span x-text="drug.notes"></span>
+                                        </p>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         <tr x-show="drug.is_manually_overridden">
@@ -443,10 +463,15 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <label class="block text-xs text-gray-500 mb-1">Note (visible on printed form)</label>
-                        <textarea x-model="drug.physician_note" :placeholder="drug.notes || 'Add clinical note...'"
+                        <label class="block text-xs text-gray-500 mb-1">
+                            <i class="fa-solid fa-notes-medical mr-1 text-blue-500"></i>
+                            Note / Instructions <span class="text-gray-400">(pre-filled from protocol, editable)</span>
+                        </label>
+                        <textarea x-model="drug.physician_note"
+                            placeholder="Add administration note..."
                             @input="checkModified()"
-                            rows="2" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                            rows="2" class="w-full border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                            :class="drug.physician_note ? 'border-blue-300 bg-blue-50' : 'border-gray-300'"></textarea>
                     </div>
                 </div>
             </template>
@@ -581,9 +606,9 @@ function orderForm() {
                 is_included: true,
                 is_manually_overridden: false,
                 override_reason: '',
-                physician_note: '',
-                physician_frequency: '',
-                physician_duration: '',
+                physician_note: d.notes || '',
+                physician_frequency: d.frequency || '',
+                physician_duration: d.duration_days || '',
                 physician_dose_unit: '',
             }));
         },
