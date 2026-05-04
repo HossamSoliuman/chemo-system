@@ -78,7 +78,7 @@ class OrderController extends Controller
                 ? (float) $submittedDrug['modification_pct']
                 : 100;
 
-            $doseResult = $this->calc->calculateDrugDose($pd, $bsa, $crcl, $perDrugModPct);
+            $doseResult = $this->calc->calculateDrugDose($pd, $bsa, $crcl, $perDrugModPct, $patient->weight_kg);
 
             $finalDose = $doseResult['final'];
             $isOverridden = false;
@@ -155,20 +155,33 @@ class OrderController extends Controller
             foreach ($orderDrugsData as $item) {
                 $pd = $item['protocol_drug'];
                 OrderDrug::create([
-                    'order_id' => $order->id,
-                    'protocol_drug_id'       => $pd->id,
-                    'drug_id'                => $pd->drug_id,
-                    'category'               => $pd->category,
-                    'calculated_dose'        => $item['calculated'],
-                    'final_dose'             => $item['final'],
-                    'is_included'            => $item['is_included'],
-                    'is_manually_overridden' => $item['is_manually_overridden'],
-                    'override_reason'        => $item['override_reason'],
-                    'cap_applied'            => $item['cap_applied'],
-                    'physician_note'         => $item['physician_note'] ?? null,
-                    'physician_frequency'    => $item['physician_frequency'] ?? null,
-                    'physician_duration'     => $item['physician_duration'] ?? null,
-                    'physician_dose_unit'    => $item['physician_dose_unit'] ?? null,
+                    'order_id'                   => $order->id,
+                    'protocol_drug_id'           => $pd->id,
+                    'drug_id'                    => $pd->drug_id,
+                    'category'                   => $pd->category,
+                    'calculated_dose'            => $item['calculated'],
+                    'final_dose'                 => $item['final'],
+                    'is_included'                => $item['is_included'],
+                    'is_manually_overridden'     => $item['is_manually_overridden'],
+                    'override_reason'            => $item['override_reason'],
+                    'cap_applied'                => $item['cap_applied'],
+                    'physician_note'             => $item['physician_note'] ?? null,
+                    'physician_frequency'        => $item['physician_frequency'] ?? null,
+                    'physician_duration'         => $item['physician_duration'] ?? null,
+                    'physician_dose_unit'        => $item['physician_dose_unit'] ?? null,
+                    'snapshot_drug_name'         => $pd->drug->name,
+                    'snapshot_dose_type'         => $pd->dose_type,
+                    'snapshot_dose_per_unit'     => $pd->dose_per_unit,
+                    'snapshot_dose_label'        => $pd->dose_label,
+                    'snapshot_route'             => $pd->route,
+                    'snapshot_frequency'         => $pd->frequency,
+                    'snapshot_duration_days'     => $pd->duration_days,
+                    'snapshot_notes'             => $pd->notes,
+                    'snapshot_target_auc'        => $pd->target_auc,
+                    'snapshot_per_cycle_cap'     => $pd->per_cycle_cap,
+                    'snapshot_per_cycle_cap_unit'=> $pd->per_cycle_cap_unit,
+                    'snapshot_lifetime_cap'      => $pd->lifetime_cap,
+                    'snapshot_lifetime_cap_unit' => $pd->lifetime_cap_unit,
                 ]);
             }
 
@@ -198,10 +211,19 @@ class OrderController extends Controller
             $order->update(['status' => 'confirmed']);
 
             foreach ($order->orderDrugs()->where('is_included', true)->get() as $od) {
-                PatientCumulativeDose::updateOrCreate(
-                    ['patient_id' => $order->patient_id, 'drug_id' => $od->drug_id],
-                    ['total_dose' => DB::raw('total_dose + ' . $od->final_dose), 'updated_at' => now()]
-                );
+                $existing = PatientCumulativeDose::where('patient_id', $order->patient_id)
+                    ->where('drug_id', $od->drug_id)
+                    ->first();
+
+                if ($existing) {
+                    $existing->increment('total_dose', (float) $od->final_dose);
+                } else {
+                    PatientCumulativeDose::create([
+                        'patient_id' => $order->patient_id,
+                        'drug_id'    => $od->drug_id,
+                        'total_dose' => (float) $od->final_dose,
+                    ]);
+                }
             }
         });
 

@@ -37,7 +37,7 @@ class ClinicalCalculationService
         return $dob->diff(new \DateTime())->y;
     }
 
-    public function calculateDrugDose(ProtocolDrug $pd, float $bsa, float $crcl, float $modification_pct = 100): array
+    public function calculateDrugDose(ProtocolDrug $pd, float $bsa, float $crcl, float $modification_pct = 100, float $weight_kg = 0): array
     {
         $calculated = 0;
 
@@ -46,7 +46,7 @@ class ClinicalCalculationService
                 $calculated = $pd->dose_per_unit * $bsa;
                 break;
             case 'weight_based':
-                $calculated = $pd->dose_per_unit * $bsa;
+                $calculated = $pd->dose_per_unit * $weight_kg;
                 break;
             case 'crcl_based':
                 $calculated = $pd->dose_per_unit * $crcl;

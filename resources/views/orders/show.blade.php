@@ -48,9 +48,9 @@
                     <tbody class="divide-y divide-gray-50">
                         @foreach($catDrugs as $od)
                         <tr class="{{ !$od->is_included ? 'opacity-40 bg-gray-50' : '' }}">
-                            <td class="px-4 py-2 font-medium {{ !$od->is_included ? 'line-through' : '' }}">{{ $od->drug->name }}</td>
-                            <td class="px-4 py-2 text-gray-500">{{ $od->protocolDrug->route ?? '—' }}</td>
-                            <td class="px-4 py-2 text-gray-500 text-xs">{{ $od->protocolDrug->frequency ?? '—' }}</td>
+                            <td class="px-4 py-2 font-medium {{ !$od->is_included ? 'line-through' : '' }}">{{ $od->effective_drug_name }}</td>
+                            <td class="px-4 py-2 text-gray-500">{{ $od->effective_route ?? '—' }}</td>
+                            <td class="px-4 py-2 text-gray-500 text-xs">{{ $od->effective_frequency ?? '—' }}</td>
                             <td class="px-4 py-2 text-right font-mono text-gray-500">{{ number_format($od->calculated_dose, 2) }}</td>
                             <td class="px-4 py-2 text-right font-mono font-semibold {{ $od->is_manually_overridden ? 'text-orange-600' : 'text-gray-800' }}">{{ number_format($od->final_dose, 2) }}</td>
                             <td class="px-4 py-2 text-xs text-gray-400">{{ $od->drug->unit }}</td>

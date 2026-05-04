@@ -334,7 +334,7 @@
         @if ($preDrugs->count() > 0)
             <div class="outer-box">
                 <div style="padding:3px 8px; border-bottom:1px solid #000;">
-                    <strong><u>Premedication 30 min before starting:</u></strong>
+                    <strong><u>Premedication:</u></strong>
                 </div>
                 <div style="padding:4px 8px;">
                     <ol style="margin:0; padding-left:22px;">
@@ -342,17 +342,17 @@
                             @php
                                 $unit = $od->physician_dose_unit ?: $od->drug->unit;
                                 $dose = number_format($od->final_dose, 2);
-                                $route = $od->protocolDrug->route ?? '';
-                                $freq = $od->physician_frequency ?: $od->protocolDrug->frequency ?? '';
+                                $route = $od->effective_route ?? '';
+                                $freq = $od->physician_frequency ?: $od->effective_frequency ?? '';
                                 $dur =
                                     $od->physician_duration ?:
-                                    ($od->protocolDrug->duration_days
-                                        ? $od->protocolDrug->duration_days . ' day(s)'
+                                    ($od->effective_duration_days
+                                        ? $od->effective_duration_days . ' day(s)'
                                         : '');
-                                $note = $od->physician_note ?: $od->protocolDrug->notes ?? '';
+                                $note = $od->physician_note ?: $od->effective_notes ?? '';
                             @endphp
                             <li style="margin-bottom:3px; line-height:1.55; font-size:11px;">
-                                <strong>{{ $od->drug->name }}</strong>
+                                <strong>{{ $od->effective_drug_name }}</strong>
                                 {{ $dose }} {{ $unit }}
                                 @if ($route)
                                     {{ $route }}
@@ -365,10 +365,6 @@
                                 @endif
                                 @if ($note)
                                     — <em>{{ $note }}</em>
-                                @endif
-                                @if ($od->is_manually_overridden && $od->override_reason)
-                                    <span style="color:#c00; font-size:9.5px;"> [Override:
-                                        {{ $od->override_reason }}]</span>
                                 @endif
                             </li>
                         @endforeach
@@ -387,15 +383,13 @@
                 <div style="padding:5px 8px;">
                     @foreach ($chemoDrugs as $od)
                         @php
-                            $pd = $od->protocolDrug;
-
                             $doseLabel =
-                                $pd->dose_label ?:
-                                match ($pd->dose_type ?? '') {
-                                    'bsa_based' => number_format($pd->dose_per_unit, 2) . ' mg/m²',
-                                    'weight_based' => number_format($pd->dose_per_unit, 2) . ' mg/kg',
-                                    'crcl_based' => number_format($pd->dose_per_unit, 2) . ' mg/mL/min',
-                                    'carboplatin_calvert' => 'AUC ' . $pd->target_auc,
+                                $od->effective_dose_label ?:
+                                match ($od->effective_dose_type ?? '') {
+                                    'bsa_based' => number_format($od->effective_dose_per_unit, 2) . ' mg/m²',
+                                    'weight_based' => number_format($od->effective_dose_per_unit, 2) . ' mg/kg',
+                                    'crcl_based' => number_format($od->effective_dose_per_unit, 2) . ' mg/mL/min',
+                                    'carboplatin_calvert' => 'AUC ' . $od->effective_target_auc,
                                     'fixed' => '',
                                     default => '',
                                 };
@@ -410,11 +404,11 @@
                             $isModified = $modPct != '100';
 
                             $effectiveUnit = $od->physician_dose_unit ?: $od->drug->unit;
-                            $adminNote = $od->physician_note ?: $pd->notes ?? '';
+                            $adminNote = $od->physician_note ?: $od->effective_notes ?? '';
                         @endphp
                         <p class="drug-para">
                             <strong>
-                                {{ strtoupper($od->drug->name) }}
+                                {{ strtoupper($od->effective_drug_name) }}
                                 @if ($doseLabel)
                                     {{ $doseLabel }}
                                 @endif
@@ -426,20 +420,16 @@
                             @if ($adminNote)
                                 {{ $adminNote }}
                             @endif
-                            @if ($pd->per_cycle_cap)
-                                <strong>Not to exceed {{ number_format($pd->per_cycle_cap, 2) }}
-                                    {{ $pd->per_cycle_cap_unit }} per cycle.</strong>
+                            @if ($od->effective_per_cycle_cap)
+                                <strong>Not to exceed {{ number_format($od->effective_per_cycle_cap, 2) }}
+                                    {{ $od->effective_per_cycle_cap_unit }} per cycle.</strong>
                             @endif
-                            @if ($pd->lifetime_cap)
+                            @if ($od->effective_lifetime_cap)
                                 <strong>Not to exceed lifetime cumulative dose of
-                                    {{ number_format($pd->lifetime_cap, 2) }} {{ $pd->lifetime_cap_unit }}.</strong>
+                                    {{ number_format($od->effective_lifetime_cap, 2) }} {{ $od->effective_lifetime_cap_unit }}.</strong>
                             @endif
                             @if ($od->cap_applied)
                                 <em style="color:#b45309;"> (cap applied)</em>
-                            @endif
-                            @if ($od->is_manually_overridden)
-                                <em style="color:#c2410c;"> &#9998;
-                                    Override{{ $od->override_reason ? ': ' . $od->override_reason : '' }}</em>
                             @endif
                         </p>
                     @endforeach
@@ -462,17 +452,17 @@
                             @php
                                 $unit = $od->physician_dose_unit ?: $od->drug->unit;
                                 $dose = number_format($od->final_dose, 2);
-                                $route = $od->protocolDrug->route ?? '';
-                                $freq = $od->physician_frequency ?: $od->protocolDrug->frequency ?? '';
+                                $route = $od->effective_route ?? '';
+                                $freq = $od->physician_frequency ?: $od->effective_frequency ?? '';
                                 $dur =
                                     $od->physician_duration ?:
-                                    ($od->protocolDrug->duration_days
-                                        ? $od->protocolDrug->duration_days . ' day(s)'
+                                    ($od->effective_duration_days
+                                        ? $od->effective_duration_days . ' day(s)'
                                         : '');
-                                $note = $od->physician_note ?: $od->protocolDrug->notes ?? '';
+                                $note = $od->physician_note ?: $od->effective_notes ?? '';
                             @endphp
                             <li style="margin-bottom:3px; line-height:1.55; font-size:11px;">
-                                <strong>{{ $od->drug->name }}</strong>
+                                <strong>{{ $od->effective_drug_name }}</strong>
                                 {{ $dose }} {{ $unit }}
                                 @if ($route)
                                     {{ $route }}
@@ -485,10 +475,6 @@
                                 @endif
                                 @if ($note)
                                     — <em>{{ $note }}</em>
-                                @endif
-                                @if ($od->is_manually_overridden && $od->override_reason)
-                                    <span style="color:#c00; font-size:9.5px;"> [Override:
-                                        {{ $od->override_reason }}]</span>
                                 @endif
                             </li>
                         @endforeach

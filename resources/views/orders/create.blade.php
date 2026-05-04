@@ -659,6 +659,15 @@
                 },
 
                 checkModified() {
+                    this.drugs.forEach(d => {
+                        if (d.is_manually_overridden) {
+                            const expected = parseFloat((d.base_dose * (d.modification_pct / 100)).toFixed(2));
+                            if (parseFloat(d.final_dose) === expected) {
+                                d.is_manually_overridden = false;
+                                d.override_reason = '';
+                            }
+                        }
+                    });
                     this.isProtocolModified = this.drugs.some(d =>
                         d.is_manually_overridden ||
                         d.modification_pct != 100 ||
