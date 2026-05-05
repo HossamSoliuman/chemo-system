@@ -117,6 +117,9 @@
             <a href="{{ route('orders.print', $order) }}" target="_blank" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-sm py-2.5 rounded-lg transition font-medium">
                 <i class="fa-solid fa-print mr-1"></i> Print Order
             </a>
+            <a href="{{ route('orders.reorder', $order) }}" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white text-sm py-2.5 rounded-lg transition font-medium">
+                Re-order
+            </a>
             @if($order->status === 'draft')
             <form method="POST" action="{{ route('orders.destroy', $order) }}" onsubmit="return confirm('Delete this draft order?')">
                 @csrf @method('DELETE')

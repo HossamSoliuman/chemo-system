@@ -112,10 +112,13 @@ class ClinicalCalculationService
 
     public function determineCycleNumber(Patient $patient, Protocol $protocol): array
     {
+        $cycleDays = max(1, (int) $protocol->cycle_duration_days);
+        $windowStart = now()->subDays($cycleDays - 1)->startOfDay();
+
         $recentOrder = Order::where('patient_id', $patient->id)
             ->where('protocol_id', $protocol->id)
             ->where('status', 'confirmed')
-            ->where('ordered_at', '>=', now()->subDays(6))
+            ->where('ordered_at', '>=', $windowStart)
             ->orderByDesc('ordered_at')
             ->first();
 

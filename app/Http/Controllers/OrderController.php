@@ -48,6 +48,13 @@ class OrderController extends Controller
         return view('orders.create', compact('diagnoses'));
     }
 
+    public function reorder(Order $order)
+    {
+        $order->load(['patient', 'protocol.diagnosis', 'orderDrugs.protocolDrug']);
+        $diagnoses = Diagnosis::orderBy('name')->get();
+        return view('orders.create', compact('diagnoses', 'order'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -84,9 +91,11 @@ class OrderController extends Controller
             $isOverridden = false;
             $overrideReason = null;
 
-            if ($submittedDrug && isset($submittedDrug['final_dose'])
+            if (
+                $submittedDrug && isset($submittedDrug['final_dose'])
                 && (float) $submittedDrug['final_dose'] != $doseResult['final']
-                && (float) $submittedDrug['final_dose'] > 0) {
+                && (float) $submittedDrug['final_dose'] > 0
+            ) {
                 $finalDose = (float) $submittedDrug['final_dose'];
                 $isOverridden = true;
                 $overrideReason = $submittedDrug['override_reason'] ?? null;
@@ -179,7 +188,7 @@ class OrderController extends Controller
                     'snapshot_notes'             => $pd->notes,
                     'snapshot_target_auc'        => $pd->target_auc,
                     'snapshot_per_cycle_cap'     => $pd->per_cycle_cap,
-                    'snapshot_per_cycle_cap_unit'=> $pd->per_cycle_cap_unit,
+                    'snapshot_per_cycle_cap_unit' => $pd->per_cycle_cap_unit,
                     'snapshot_lifetime_cap'      => $pd->lifetime_cap,
                     'snapshot_lifetime_cap_unit' => $pd->lifetime_cap_unit,
                 ]);

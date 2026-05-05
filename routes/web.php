@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('orders/{order}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
     Route::get('orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
+    Route::get('orders/{order}/reorder', [OrderController::class, 'reorder'])->name('orders.reorder');
     Route::resource('orders', OrderController::class);
 
     Route::prefix('api')->name('api.')->group(function () {

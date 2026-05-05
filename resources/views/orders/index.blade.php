@@ -71,6 +71,7 @@
                     <td class="px-4 py-3 flex items-center gap-3">
                         <a href="{{ route('orders.show', $order) }}" class="text-blue-600 hover:text-blue-800"><i class="fa-solid fa-eye"></i></a>
                         <a href="{{ route('orders.print', $order) }}" class="text-gray-500 hover:text-gray-700" target="_blank"><i class="fa-solid fa-print"></i></a>
+                        <a href="{{ route('orders.reorder', $order) }}" class="text-green-600 hover:text-green-800 text-xs font-medium">Re-order</a>
                         @if($order->status === 'draft')
                         <form method="POST" action="{{ route('orders.destroy', $order) }}" onsubmit="return confirm('Delete this draft order?')">
                             @csrf @method('DELETE')

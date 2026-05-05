@@ -41,6 +41,16 @@
             </div>
         </div>
 
+        @if(isset($order))
+        <div class="mb-4 flex items-center gap-3 bg-green-50 border-2 border-green-400 rounded-xl px-5 py-3">
+            <i class="fa-solid fa-clone text-green-600 text-xl"></i>
+            <div>
+                <p class="font-bold text-green-800 uppercase tracking-wide text-sm">Re-ordering from {{ $order->order_number }}</p>
+                <p class="text-xs text-green-700">Previous order for {{ $order->patient->name }} &mdash; {{ $order->protocol->name }} &mdash; Cycle {{ $order->cycle_number }}. Review and adjust before saving.</p>
+            </div>
+        </div>
+        @endif
+
         <div x-show="isProtocolModified" x-cloak
             class="mb-4 flex items-center gap-3 bg-orange-50 border-2 border-orange-400 rounded-xl px-5 py-3">
             <i class="fa-solid fa-triangle-exclamation text-orange-500 text-xl"></i>
@@ -499,24 +509,24 @@
             <div class="grid grid-cols-3 gap-4 mb-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Consultant Physician</label>
-                    <input type="text" name="consultant_name"
+                    <input type="text" name="consultant_name" value="{{ isset($order) ? $order->consultant_name : '' }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Clinical Pharmacist</label>
-                    <input type="text" name="pharmacist_name"
+                    <input type="text" name="pharmacist_name" value="{{ isset($order) ? $order->pharmacist_name : '' }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nurse</label>
-                    <input type="text" name="nurse_name"
+                    <input type="text" name="nurse_name" value="{{ isset($order) ? $order->nurse_name : '' }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
             <div class="mt-3">
                 <label class="block text-xs font-medium text-gray-500 mb-1">Clinical Notes / Allergies</label>
                 <textarea name="notes" rows="2"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ isset($order) ? $order->notes : '' }}</textarea>
             </div>
         </div>
 
@@ -535,9 +545,28 @@
 
 @push('scripts')
     <script>
+@php
+    $reorderData = isset($order) ? [
+        'mrn'          => $order->patient->mrn,
+        'patient_id'   => $order->patient->id,
+        'diagnosis_id' => $order->protocol->diagnosis_id,
+        'protocol_id'  => $order->protocol_id,
+        'drugs'        => $order->orderDrugs->map(fn($od) => [
+            'protocol_drug_id'   => $od->protocol_drug_id,
+            'final_dose'         => $od->final_dose,
+            'physician_frequency'=> $od->physician_frequency,
+            'physician_duration' => $od->physician_duration,
+            'physician_dose_unit'=> $od->physician_dose_unit,
+            'physician_note'     => $od->physician_note,
+            'is_included'        => $od->is_included,
+        ])->values()->toArray(),
+    ] : null;
+@endphp
+const _reorderData = @json($reorderData);
+
         function orderForm() {
             return {
-                mrnInput: '{{ request('mrn', '') }}',
+                mrnInput: _reorderData ? _reorderData.mrn : '{{ request('mrn', '') }}',
                 patient: null,
                 patientNotFound: false,
                 quickEdit: {
@@ -546,8 +575,8 @@
                     serum_creatinine: ''
                 },
                 quickSaved: false,
-                diagnosisId: '',
-                protocolId: '',
+                diagnosisId: _reorderData ? String(_reorderData.diagnosis_id) : '',
+                protocolId: _reorderData ? String(_reorderData.protocol_id) : '',
                 protocols: [],
                 drugs: [],
                 cycleInfo: null,
@@ -562,7 +591,23 @@
                 submitting: false,
                 _pendingPayload: null,
 
-                init() {},
+                async init() {
+                    if (!_reorderData) return;
+                    await this.lookupMrn();
+                    await this.loadProtocols();
+                    this.protocolId = String(_reorderData.protocol_id);
+                    await this.loadDrugTable();
+                    _reorderData.drugs.forEach(rd => {
+                        const drug = this.drugs.find(d => d.protocol_drug_id == rd.protocol_drug_id);
+                        if (!drug) return;
+                        drug.final_dose          = rd.final_dose;
+                        drug.physician_frequency = rd.physician_frequency || drug.physician_frequency;
+                        drug.physician_duration  = rd.physician_duration  || drug.physician_duration;
+                        drug.physician_dose_unit = rd.physician_dose_unit || '';
+                        drug.physician_note      = rd.physician_note      || '';
+                        drug.is_included         = rd.is_included;
+                    });
+                },
 
                 async lookupMrn() {
                     this.patientNotFound = false;
