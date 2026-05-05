@@ -9,12 +9,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     protected $fillable = [
-        'patient_id', 'protocol_id', 'order_number', 'cycle_number',
-        'is_same_cycle', 'is_split_cycle', 'cycle_day_week',
-        'parent_order_id', 'bsa', 'crcl',
-        'dose_modification_percent', 'dose_modification_reason',
-        'is_modified_protocol', 'consultant_name', 'pharmacist_name',
-        'nurse_name', 'ordered_at', 'notes', 'status',
+        'patient_id',
+        'protocol_id',
+        'order_number',
+        'cycle_number',
+        'is_same_cycle',
+        'is_split_cycle',
+        'cycle_day_week',
+        'parent_order_id',
+        'bsa',
+        'crcl',
+        'dose_modification_percent',
+        'dose_modification_reason',
+        'is_modified_protocol',
+        'consultant_name',
+        'pharmacist_name',
+        'nurse_name',
+        'ordered_at',
+        'notes',
+        'status',
     ];
 
     protected $casts = [
@@ -50,11 +63,19 @@ class Order extends Model
     protected static function boot(): void
     {
         parent::boot();
+
         static::creating(function (Order $order) {
             if (empty($order->order_number)) {
                 $year = now()->year;
-                $count = static::whereYear('created_at', $year)->count() + 1;
-                $order->order_number = 'ORD-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                $prefix = 'ORD-' . $year . '-';
+
+                $last = static::where('order_number', 'like', $prefix . '%')
+                    ->lockForUpdate()
+                    ->max('order_number');
+
+                $next = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
+
+                $order->order_number = $prefix . str_pad($next, 4, '0', STR_PAD_LEFT);
             }
         });
     }
