@@ -121,7 +121,7 @@ class OrderController extends Controller
             ];
         }
 
-        $lifetimeWarnings = $this->calc->checkLifetimeCaps($patient, collect($orderDrugsData));
+        $lifetimeWarnings = $this->calc->checkLifetimeCaps($patient, collect($orderDrugsData), $bsa);
 
         if (!empty($lifetimeWarnings) && !$request->boolean('lifetime_cap_acknowledged')) {
             return response()->json([

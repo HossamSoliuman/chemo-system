@@ -71,7 +71,12 @@
                     <div class="w-full bg-gray-100 rounded-full h-1.5">
                         <div class="h-1.5 rounded-full {{ $pct >= 90 ? 'bg-red-500' : ($pct >= 70 ? 'bg-yellow-500' : 'bg-green-500') }}" style="width: {{ $pct }}%"></div>
                     </div>
-                    <div class="text-xs text-gray-400 mt-0.5">Cap: {{ number_format($cd->lifetime_cap, 2) }} {{ $cd->lifetime_cap_unit }}</div>
+                    <div class="text-xs text-gray-400 mt-0.5">
+                        Cap: {{ number_format($cd->lifetime_cap, 2) }} {{ $cd->lifetime_cap_unit }}
+                        @if($cd->lifetime_cap_label)
+                            <span class="text-gray-300">({{ $cd->lifetime_cap_label }} &times; BSA)</span>
+                        @endif
+                    </div>
                     @endif
                 </div>
                 @endforeach

@@ -31,27 +31,34 @@ class OrderCalculationApiController extends Controller
 
         $drugs = $protocol->protocolDrugs->map(function ($pd) use ($bsa, $crcl, $patient) {
             $result = $this->calc->calculateDrugDose($pd, $bsa, $crcl, 100, $patient->weight_kg);
+
+            $absoluteCap = $pd->lifetime_cap;
+            if ($pd->lifetime_cap && strtolower(trim($pd->lifetime_cap_unit)) === 'mg/m²') {
+                $absoluteCap = round($pd->lifetime_cap * $bsa, 2);
+            }
+
             return [
-                'protocol_drug_id'  => $pd->id,
-                'drug_id'           => $pd->drug_id,
-                'drug_name'         => $pd->drug->name,
-                'drug_unit'         => $pd->drug->unit,
-                'category'          => $pd->category,
-                'dose_type'         => $pd->dose_type,
-                'dose_per_unit'     => $pd->dose_per_unit,
-                'dose_label'        => $pd->dose_label,
-                'target_auc'        => $pd->target_auc,
-                'route'             => $pd->route,
-                'frequency'         => $pd->frequency,
-                'duration_days'     => $pd->duration_days,
-                'notes'             => $pd->notes,
-                'per_cycle_cap'     => $pd->per_cycle_cap,
-                'per_cycle_cap_unit'=> $pd->per_cycle_cap_unit,
-                'lifetime_cap'      => $pd->lifetime_cap,
-                'lifetime_cap_unit' => $pd->lifetime_cap_unit,
-                'calculated_dose'   => $result['calculated'],
-                'final_dose'        => $result['final'],
-                'cap_applied'       => $result['cap_applied'],
+                'protocol_drug_id'      => $pd->id,
+                'drug_id'               => $pd->drug_id,
+                'drug_name'             => $pd->drug->name,
+                'drug_unit'             => $pd->drug->unit,
+                'category'              => $pd->category,
+                'dose_type'             => $pd->dose_type,
+                'dose_per_unit'         => $pd->dose_per_unit,
+                'dose_label'            => $pd->dose_label,
+                'target_auc'            => $pd->target_auc,
+                'route'                 => $pd->route,
+                'frequency'             => $pd->frequency,
+                'duration_days'         => $pd->duration_days,
+                'notes'                 => $pd->notes,
+                'per_cycle_cap'         => $pd->per_cycle_cap,
+                'per_cycle_cap_unit'    => $pd->per_cycle_cap_unit,
+                'lifetime_cap'          => $pd->lifetime_cap,
+                'lifetime_cap_unit'     => $pd->lifetime_cap_unit,
+                'lifetime_cap_absolute' => $absoluteCap,
+                'calculated_dose'       => $result['calculated'],
+                'final_dose'            => $result['final'],
+                'cap_applied'           => $result['cap_applied'],
             ];
         });
 

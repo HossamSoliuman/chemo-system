@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Patient;
 use App\Models\ProtocolDrug;
+use App\Services\ClinicalCalculationService;
 use Illuminate\Http\Request;
 
 class PatientController extends Controller
@@ -40,16 +41,31 @@ class PatientController extends Controller
     {
         $patient->load(['orders.protocol.diagnosis', 'cumulativeDoses.drug']);
 
+        $calc = app(ClinicalCalculationService::class);
+        $bsa  = $calc->calculateBSA((float) $patient->height_cm, (float) $patient->weight_kg);
+
         $cumulativeDoses = $patient->cumulativeDoses()
             ->with('drug')
             ->get()
-            ->map(function ($cd) use ($patient) {
+            ->map(function ($cd) use ($bsa) {
                 $protocolDrug = ProtocolDrug::where('drug_id', $cd->drug_id)
                     ->whereNotNull('lifetime_cap')
                     ->orderByDesc('lifetime_cap')
                     ->first();
-                $cd->lifetime_cap = $protocolDrug?->lifetime_cap;
-                $cd->lifetime_cap_unit = $protocolDrug?->lifetime_cap_unit;
+
+                $rawCap  = $protocolDrug?->lifetime_cap;
+                $capUnit = $protocolDrug?->lifetime_cap_unit;
+
+                if ($rawCap && strtolower(trim($capUnit)) === 'mg/m²') {
+                    $cd->lifetime_cap      = round($rawCap * $bsa, 2);
+                    $cd->lifetime_cap_unit = 'mg';
+                    $cd->lifetime_cap_label = number_format($rawCap, 2) . ' mg/m²';
+                } else {
+                    $cd->lifetime_cap      = $rawCap;
+                    $cd->lifetime_cap_unit = $capUnit;
+                    $cd->lifetime_cap_label = null;
+                }
+
                 return $cd;
             });
 

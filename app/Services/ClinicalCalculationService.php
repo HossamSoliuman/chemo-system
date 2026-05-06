@@ -78,7 +78,7 @@ class ClinicalCalculationService
         ];
     }
 
-    public function checkLifetimeCaps(Patient $patient, Collection $orderDrugs): array
+    public function checkLifetimeCaps(Patient $patient, Collection $orderDrugs, float $bsa = 0): array
     {
         $warnings = [];
 
@@ -95,14 +95,19 @@ class ClinicalCalculationService
             $newDose = $item['final'];
             $projectedTotal = $cumulative + $newDose;
 
-            if ($projectedTotal > $pd->lifetime_cap) {
+            $absoluteCap = $pd->lifetime_cap;
+            if ($bsa > 0 && strtolower(trim($pd->lifetime_cap_unit)) === 'mg/m²') {
+                $absoluteCap = $pd->lifetime_cap * $bsa;
+            }
+
+            if ($projectedTotal > $absoluteCap) {
                 $warnings[] = [
-                    'drug' => $pd->drug,
+                    'drug'          => $pd->drug,
                     'current_total' => $cumulative,
-                    'new_dose' => $newDose,
-                    'cap' => $pd->lifetime_cap,
-                    'cap_unit' => $pd->lifetime_cap_unit,
-                    'exceeded' => true,
+                    'new_dose'      => $newDose,
+                    'cap'           => $absoluteCap,
+                    'cap_unit'      => 'mg',
+                    'exceeded'      => true,
                 ];
             }
         }
