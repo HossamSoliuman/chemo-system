@@ -133,7 +133,7 @@ class ClinicalCalculationService
                 'is_same_cycle' => true,
                 'parent_order_id' => $recentOrder->id,
             ];
-        }
+        } 
 
         $lastOrder = Order::where('patient_id', $patient->id)
             ->where('protocol_id', $protocol->id)

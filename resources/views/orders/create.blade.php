@@ -159,13 +159,20 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Protocol</label>
-                    <select x-model="protocolId" @change="loadDrugTable()" :disabled="!protocols.length"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100">
-                        <option value="">Select protocol</option>
-                        <template x-for="p in protocols" :key="p.id">
-                            <option :value="p.id" x-text="p.name"></option>
-                        </template>
-                    </select>
+                    <div class="flex gap-2">
+                        <select x-model="protocolId" @change="loadDrugTable()" :disabled="!protocols.length"
+                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100">
+                            <option value="">Select protocol</option>
+                            <template x-for="p in protocols" :key="p.id">
+                                <option :value="p.id" x-text="p.name"></option>
+                            </template>
+                        </select>
+                        <button type="button" x-show="selectedProtocolUrl" @click="openProtocolUrl()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition whitespace-nowrap"
+                            title="Open protocol guidelines in new tab">
+                            <i class="fa-solid fa-external-link-alt"></i>
+                        </button>
+                    </div>
                     <input type="hidden" name="protocol_id" :value="protocolId">
                 </div>
             </div>
@@ -578,6 +585,7 @@ const _reorderData = @json($reorderData);
                 diagnosisId: _reorderData ? String(_reorderData.diagnosis_id) : '',
                 protocolId: _reorderData ? String(_reorderData.protocol_id) : '',
                 protocols: [],
+                selectedProtocolUrl: null,
                 drugs: [],
                 cycleInfo: null,
                 bsa: null,
@@ -656,6 +664,7 @@ const _reorderData = @json($reorderData);
 
                 async loadProtocols() {
                     this.protocolId = '';
+                    this.selectedProtocolUrl = null;
                     this.drugs = [];
                     this.cycleInfo = null;
                     this.testsReminder = null;
@@ -670,6 +679,7 @@ const _reorderData = @json($reorderData);
                 async loadDrugTable() {
                     if (!this.patient || !this.protocolId) return;
                     const selectedProtocol = this.protocols.find(p => p.id == this.protocolId);
+                    this.selectedProtocolUrl = selectedProtocol?.url || null;
                     this.testsReminder = selectedProtocol?.tests_reminder || null;
                     const res = await fetch('/api/orders/calculate', {
                         method: 'POST',
@@ -701,6 +711,12 @@ const _reorderData = @json($reorderData);
                         physician_duration: d.duration_days || '',
                         physician_dose_unit: '',
                     }));
+                },
+
+                openProtocolUrl() {
+                    if (this.selectedProtocolUrl) {
+                        window.open(this.selectedProtocolUrl, '_blank');
+                    }
                 },
 
                 checkModified() {

@@ -34,11 +34,11 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">
-                                <i class="fa-solid fa-flask-vial mr-1 text-amber-500"></i>
-                                Required Tests / Investigations
-                                <span class="ml-1 text-gray-400 font-normal">(internal — not printed)</span>
+                                <i class="fa-solid fa-link mr-1 text-blue-500"></i>
+                                Guidelines URL
+                                <span class="ml-1 text-gray-400 font-normal">(for prescriber reference)</span>
                             </label>
-                            <textarea name="tests_reminder" rows="2" placeholder="e.g. CBC & diff, platelets, creatinine & LFT before each cycle." class="w-full border border-amber-200 bg-amber-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+                            <input type="url" name="url" placeholder="https://example.com/guidelines" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                 </div>

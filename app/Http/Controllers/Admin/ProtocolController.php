@@ -31,6 +31,7 @@ class ProtocolController extends Controller
             'name' => 'required|string|max:255',
             'diagnosis_id' => 'required|exists:diagnoses,id',
             'cycle_duration_days' => 'required|integer|min:1',
+            'url' => 'nullable|url',
             'drugs' => 'nullable|array',
         ]);
 
@@ -40,6 +41,7 @@ class ProtocolController extends Controller
                 'diagnosis_id' => $request->diagnosis_id,
                 'description' => $request->description,
                 'tests_reminder' => $request->tests_reminder,
+                'url' => $request->url,
                 'cycle_duration_days' => $request->cycle_duration_days,
             ]);
 
@@ -63,6 +65,7 @@ class ProtocolController extends Controller
             'name' => 'required|string|max:255',
             'diagnosis_id' => 'required|exists:diagnoses,id',
             'cycle_duration_days' => 'required|integer|min:1',
+            'url' => 'nullable|url',
             'drugs' => 'nullable|array',
         ]);
 
@@ -72,6 +75,7 @@ class ProtocolController extends Controller
                 'diagnosis_id' => $request->diagnosis_id,
                 'description' => $request->description,
                 'tests_reminder' => $request->tests_reminder,
+                'url' => $request->url,
                 'cycle_duration_days' => $request->cycle_duration_days,
             ]);
 
