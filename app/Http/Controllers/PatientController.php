@@ -63,7 +63,7 @@ class PatientController extends Controller
                     $cd->total_dose        = round($cd->total_dose * $bsa, 2);
                     $cd->lifetime_cap      = round($rawCap * $bsa, 2);
                     $cd->lifetime_cap_unit = 'mg';
-                    $cd->lifetime_cap_label = number_format($rawCap, 2) . ' mg/m²' . ($isAuc ? ' × BSA' : '');
+                    $cd->lifetime_cap_label = number_format($rawCap, 2) . ' mg/m²';
                 } else {
                     $cd->lifetime_cap      = $rawCap;
                     $cd->lifetime_cap_unit = $capUnit;
