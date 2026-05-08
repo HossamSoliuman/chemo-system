@@ -14,7 +14,6 @@ use App\Http\Controllers\Api\ProtocolApiController;
 use App\Http\Controllers\Api\OrderCalculationApiController;
 use App\Http\Controllers\Api\PatientQuickUpdateController;
 
-//test
 
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login']);
