@@ -14,21 +14,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->seedUsers();
+        $this->call(UserSeeder::class);
         $drugs = $this->seedDrugs();
         $diagnoses = $this->seedDiagnoses();
         $protocols = $this->seedProtocols($diagnoses, $drugs);
         $patients = $this->seedPatients();
         $this->seedOrders($patients, $protocols, $drugs);
-    }
-
-    private function seedUsers(): void
-    {
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@oncochemo.local',
-            'password' => Hash::make('password123'),
-        ]);
     }
 
     private function seedDrugs(): array

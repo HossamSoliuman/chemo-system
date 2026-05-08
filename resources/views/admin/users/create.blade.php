@@ -69,6 +69,23 @@
                 >
             </div>
 
+            <div>
+                <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <select
+                    id="role"
+                    name="role"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition @error('role') border-red-500 @enderror"
+                >
+                    <option value="">Select a role</option>
+                    <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
+                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                </select>
+                @error('role')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="flex gap-3 pt-4">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
                     <i class="fa-solid fa-save mr-2"></i> Create User
