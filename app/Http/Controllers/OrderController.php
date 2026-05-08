@@ -220,17 +220,22 @@ class OrderController extends Controller
             $order->update(['status' => 'confirmed']);
 
             foreach ($order->orderDrugs()->where('is_included', true)->get() as $od) {
+                $doseToAccumulate = (float) $od->final_dose;
+                if ($od->snapshot_dose_type === 'carboplatin_calvert' && (float) $order->bsa > 0) {
+                    $doseToAccumulate = round($doseToAccumulate / (float) $order->bsa, 4);
+                }
+
                 $existing = PatientCumulativeDose::where('patient_id', $order->patient_id)
                     ->where('drug_id', $od->drug_id)
                     ->first();
 
                 if ($existing) {
-                    $existing->increment('total_dose', (float) $od->final_dose);
+                    $existing->increment('total_dose', $doseToAccumulate);
                 } else {
                     PatientCumulativeDose::create([
                         'patient_id' => $order->patient_id,
                         'drug_id'    => $od->drug_id,
-                        'total_dose' => (float) $od->final_dose,
+                        'total_dose' => $doseToAccumulate,
                     ]);
                 }
             }

@@ -93,6 +93,9 @@ class ClinicalCalculationService
                 ->value('total_dose') ?? 0;
 
             $newDose = $item['final'];
+            if ($pd->dose_type === 'carboplatin_calvert' && $bsa > 0) {
+                $newDose = round($newDose / $bsa, 4);
+            }
             $projectedTotal = $cumulative + $newDose;
 
             $absoluteCap = $pd->lifetime_cap;
