@@ -46,39 +46,3 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-Route::get('/tmp-fix-auc-cumulative', function () {
-    $aucDrugIds = \App\Models\ProtocolDrug::where('dose_type', 'carboplatin_calvert')
-        ->pluck('drug_id')
-        ->unique();
-
-    $updated = 0;
-    $skipped = 0;
-    $log     = [];
-
-    foreach ($aucDrugIds as $drugId) {
-        $records = \App\Models\PatientCumulativeDose::where('drug_id', $drugId)->get();
-
-        foreach ($records as $record) {
-            $patient = \App\Models\Patient::find($record->patient_id);
-            if (!$patient) { $skipped++; continue; }
-
-            $bsa = round(sqrt(($patient->height_cm * $patient->weight_kg) / 3600), 4);
-            if ($bsa <= 0) { $skipped++; continue; }
-
-            $oldDose = $record->total_dose;
-            $newDose = round($oldDose / $bsa, 4);
-
-            $record->update(['total_dose' => $newDose]);
-
-            $log[] = "Patient {$patient->mrn}: {$oldDose} mg -> {$newDose} mg/m2 (BSA={$bsa})";
-            $updated++;
-        }
-    }
-
-    return response()->json([
-        'status'  => 'done',
-        'updated' => $updated,
-        'skipped' => $skipped,
-        'log'     => $log,
-    ]);
-});
