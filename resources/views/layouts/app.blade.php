@@ -79,10 +79,12 @@
                     class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition {{ request()->routeIs('admin.drugs.*') ? 'bg-blue-700' : '' }}">
                     <i class="fa-solid fa-capsules w-5 text-center"></i> Drug Master
                 </a>
+                @if(auth()->user()->isAdmin())
                 <a href="{{ route('admin.users.index') }}"
                     class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition {{ request()->routeIs('admin.users.*') ? 'bg-blue-700' : '' }}">
                     <i class="fa-solid fa-users w-5 text-center"></i> Users
                 </a>
+                @endif
             </nav>
 
             <div class="px-4 py-3 border-t border-blue-800 text-xs text-blue-400">
@@ -111,10 +113,12 @@
                         </button>
                         <div @click.away="open = false" x-show="open"
                             class="absolute right-6 top-16 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                            @if(auth()->user()->isAdmin())
                             <a href="{{ route('admin.users.index') }}"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-200">
                                 <i class="fa-solid fa-users mr-2"></i> Manage Users
                             </a>
+                            @endif
                             <form method="POST" action="{{ route('logout') }}" class="block">
                                 @csrf
                                 <button type="submit"
