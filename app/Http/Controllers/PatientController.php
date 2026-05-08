@@ -53,13 +53,17 @@ class PatientController extends Controller
                     ->orderByDesc('lifetime_cap')
                     ->first();
 
-                $rawCap  = $protocolDrug?->lifetime_cap;
-                $capUnit = $protocolDrug?->lifetime_cap_unit;
+                $rawCap   = $protocolDrug?->lifetime_cap;
+                $capUnit  = $protocolDrug?->lifetime_cap_unit;
+                $doseType = $protocolDrug?->dose_type;
 
-                if ($rawCap && strtolower(trim($capUnit)) === 'mg/m²') {
+                $isAuc = ($doseType === 'carboplatin_calvert');
+
+                if ($rawCap && (strtolower(trim($capUnit)) === 'mg/m²' || $isAuc)) {
+                    $cd->total_dose        = round($cd->total_dose * $bsa, 2);
                     $cd->lifetime_cap      = round($rawCap * $bsa, 2);
                     $cd->lifetime_cap_unit = 'mg';
-                    $cd->lifetime_cap_label = number_format($rawCap, 2) . ' mg/m²';
+                    $cd->lifetime_cap_label = number_format($rawCap, 2) . ' mg/m²' . ($isAuc ? ' × BSA' : '');
                 } else {
                     $cd->lifetime_cap      = $rawCap;
                     $cd->lifetime_cap_unit = $capUnit;
