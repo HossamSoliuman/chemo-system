@@ -163,7 +163,7 @@
                         <button class="copy-btn" onclick="copyText('password', this)">copy</button>
                     </span>
                 </div>
-                <button class="demo-fill-btn" onclick="fillDemo()">⚡ Fill demo credentials</button>
+                <button class="demo-fill-btn" onclick="fillDemo()">Fill demo credentials</button>
             </div>
 
             <form method="POST" action="{{ route('login') }}" class="space-y-4">
