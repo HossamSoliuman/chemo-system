@@ -1,5 +1,9 @@
 # OncoChemo — Chemotherapy Protocol Ordering System
 
+This project is a chemotherapy protocol ordering system designed specifically for cancer treatment management. Per the client's request, the system is designed to work locally and completely offline. Please note that all data within the application, including patient records, is entirely dummy data used for demonstration purposes and does not contain actual patient information.
+
+**Demo URL:** https://hossam-chemo-system.web1337.net/
+
 A complete offline-capable Laravel 11 web application for oncology departments to manage chemotherapy protocols, patient records, and drug orders with automatic clinical calculations.
 
 ---
@@ -108,13 +112,15 @@ Run for print view too in `resources/views/orders/print.blade.php`.
 
 ## Features
 
-- **Patient Management** — MRN-based registration with anthropometric data
+- **Patient Management** — MRN-based registration with anthropometric data and quick updates
 - **Diagnosis & Protocol Administration** — Full CRUD with drug builder UI
+- **User Management** — Administrator accounts management
 - **Clinical Calculations** — Auto BSA (Mosteller), CrCl (Cockcroft-Gault), Carboplatin (Calvert)
-- **Order Creation** — Step-by-step ordering with real-time dose calculation
+- **Order Creation** — Step-by-step ordering with real-time dose calculation and re-order functionality
+- **Order Confirmation** — Built-in review and confirm workflow
 - **Dose Modifications** — Global % modification with per-drug manual override
 - **Safety Checks** — Per-cycle caps, lifetime dose caps with modal acknowledgment
-- **Cycle Tracking** — Auto cycle numbering, same-cycle detection (within 6 days)
+- **Cycle Tracking** — Auto cycle numbering based on protocol-specific cycle lengths
 - **Print Form** — Complete printable chemotherapy order with signature blocks
 - **Order History** — Filterable by MRN, protocol, date, status
 - **Cumulative Dose Tracking** — Per-patient lifetime dose tracker with visual bar
@@ -126,18 +132,18 @@ Run for print view too in `resources/views/orders/print.blade.php`.
 ```
 app/
   Http/Controllers/
-    Admin/          — DiagnosisController, ProtocolController, DrugController
-    Api/            — PatientApiController, ProtocolApiController, OrderCalculationApiController
-    DashboardController, PatientController, OrderController
-  Models/           — Patient, Diagnosis, Protocol, ProtocolDrug, Drug, Order, OrderDrug, PatientCumulativeDose
+    Admin/          — DiagnosisController, ProtocolController, DrugController, UserController
+    Api/            — PatientApiController, ProtocolApiController, OrderCalculationApiController, PatientQuickUpdateController
+    AuthController, DashboardController, PatientController, OrderController
+  Models/           — User, Patient, Diagnosis, Protocol, ProtocolDrug, Drug, Order, OrderDrug, PatientCumulativeDose
   Services/         — ClinicalCalculationService (BSA, CrCl, Carboplatin, caps)
 database/
-  migrations/       — 8 migration files
-  seeders/          — DatabaseSeeder with 8 real protocols
+  migrations/       — Migration files
+  seeders/          — DatabaseSeeder with real protocols
 resources/views/
   layouts/app.blade.php
   dashboard.blade.php
-  admin/diagnoses/, admin/protocols/, admin/drugs/
+  admin/diagnoses/, admin/protocols/, admin/drugs/, admin/users/
   patients/
   orders/           — index, create, show, print
   partials/alerts.blade.php
