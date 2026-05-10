@@ -13,6 +13,115 @@
         [x-cloak] {
             display: none !important;
         }
+
+        .demo-box {
+            background: #eff6ff;
+            border: 1px dashed #93c5fd;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+        }
+
+        .demo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 9px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .demo-dot {
+            width: 6px;
+            height: 6px;
+            background: #2563eb;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: .3;
+                transform: scale(.75);
+            }
+        }
+
+        .demo-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .demo-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: #6b7280;
+        }
+
+        .demo-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: monospace;
+            font-size: 12.5px;
+            color: #1e3a5f;
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid #bfdbfe;
+            border-radius: 4px;
+            color: #6b7280;
+            font-size: 10px;
+            padding: 2px 7px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .copy-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .copy-btn.copied {
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+
+        .demo-fill-btn {
+            width: 100%;
+            background: transparent;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            color: #6b7280;
+            font-size: 12px;
+            padding: 7px;
+            cursor: pointer;
+            margin-top: 11px;
+            transition: all .15s;
+        }
+
+        .demo-fill-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: #eff6ff;
+        }
     </style>
 </head>
 
@@ -33,6 +142,29 @@
                     </p>
                 </div>
             @endif
+
+            <!-- Demo Credentials Box -->
+            <div class="demo-box">
+                <div class="demo-badge">
+                    <span class="demo-dot"></span>
+                    Demo Access
+                </div>
+                <div class="demo-row">
+                    <span class="demo-label">Email</span>
+                    <span class="demo-value">
+                        demo@oncochemo.local
+                        <button class="copy-btn" onclick="copyText('demo@oncochemo.local', this)">copy</button>
+                    </span>
+                </div>
+                <div class="demo-row" style="margin-top:8px">
+                    <span class="demo-label">Password</span>
+                    <span class="demo-value">
+                        password
+                        <button class="copy-btn" onclick="copyText('password', this)">copy</button>
+                    </span>
+                </div>
+                <button class="demo-fill-btn" onclick="fillDemo()">⚡ Fill demo credentials</button>
+            </div>
 
             <form method="POST" action="{{ route('login') }}" class="space-y-4">
                 @csrf
@@ -68,6 +200,29 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function fillDemo() {
+            document.getElementById('email').value = 'demo@oncochemo.local';
+            document.getElementById('password').value = 'password';
+            ['email', 'password'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.add('ring-2', 'ring-blue-400');
+                setTimeout(() => el.classList.remove('ring-2', 'ring-blue-400'), 900);
+            });
+        }
+
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '✓ copied';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'copy';
+                    btn.classList.remove('copied');
+                }, 1800);
+            });
+        }
+    </script>
 </body>
 
 </html>
